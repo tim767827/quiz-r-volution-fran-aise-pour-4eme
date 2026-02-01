@@ -3,22 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Révolution Française – S'améliorer</title>
+<title>Quiz Révolution Française – Interactif</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
-body {font-family:sans-serif;background:#f0f8ff;display:flex;justify-content:center;padding:20px;}
-main {background:white;padding:20px;border-radius:20px;width:95%;max-width:900px;box-shadow:0 10px 20px rgba(0,0,0,0.2);text-align:center;}
-button {padding:10px 20px;margin:10px;border:none;border-radius:10px;cursor:pointer;font-weight:bold;}
-.correct{background:#4caf50;color:white;}
-.wrong{background:#f44336;color:white;}
-#question{text-align:left;margin:15px 0;}
-#scoreDiv{margin-top:20px;}
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #FFDEE9, #B5FFFC);
+  display:flex;
+  justify-content:center;
+  padding:20px;
+  transition: background 0.5s;
+}
+main {
+  background:white;
+  padding:20px;
+  border-radius:20px;
+  width:95%;
+  max-width:900px;
+  box-shadow:0 15px 30px rgba(0,0,0,0.25);
+  text-align:center;
+  animation: fadeIn 1s ease;
+}
+@keyframes fadeIn { from {opacity:0; transform: translateY(-20px);} to {opacity:1; transform:translateY(0);} }
+
+h1 {color:#333; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);}
+button {
+  margin:10px auto;
+  padding:12px;
+  width:90%;
+  max-width:400px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:1rem;
+  transition: transform 0.2s, background 0.3s;
+}
+button:hover { transform: scale(1.05);}
+.correct {background:#4CAF50;color:white; animation: pop 0.3s;}
+.wrong {background:#F44336;color:white; animation: shake 0.3s;}
+@keyframes pop { 0% {transform: scale(1);} 50% {transform: scale(1.2);} 100% {transform: scale(1);} }
+@keyframes shake { 0% {transform: translateX(0);} 25% {transform: translateX(-5px);} 50% {transform: translateX(5px);} 75% {transform: translateX(-5px);} 100% {transform: translateX(0);} }
+
+#question {text-align:left; margin:15px 0; font-size:1.2rem;}
+#feedback {font-style:italic; margin-top:10px; min-height:40px; transition: all 0.3s;}
 #timerContainer{background:#ddd;width:95%;height:20px;border-radius:10px;margin:10px auto;overflow:hidden;}
-#timerBar{height:100%;width:100%;background:#e91e63;transition:width 1s linear,background 0.5s;}
+#timerBar{height:100%;width:100%;background:#e91e63;transition:width 1s linear, background 0.5s;}
 </style>
 </head>
 <body>
 <main>
-<h1>Quiz Révolution Française – S’améliorer</h1>
+<h1>Quiz Révolution Française – Interactif</h1>
 
 <div id="startDiv">
 <p>Entrez votre pseudo :</p>
@@ -50,19 +85,14 @@ const feedbackEl=document.getElementById("feedback");
 const scoreText=document.getElementById("scoreText");
 const timerBar=document.getElementById("timerBar");
 
-// ===== 50 QUESTIONS avec explications détaillées =====
+// ===== QUESTIONS exemple =====
 const banqueQuestions=[
 {q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution française commence en 1789, avec la convocation des États généraux et la prise de la Bastille. Cet événement marque la fin de l'absolutisme royal."},
 {q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution. Son incapacité à réformer les finances et la société a précipité la crise."},
 {q:"Quel événement a lieu le 14 juillet 1789 ?", a:["Prise de la Bastille","Fête nationale","Exécution du roi","Code civil"], r:"Prise de la Bastille", e:"La prise de la Bastille est un symbole de la lutte du peuple contre l'absolutisme. Elle est devenue la fête nationale française."},
 {q:"Que signifie 'liberté, égalité, fraternité' ?", a:["Valeurs de la Révolution","Un décret royal","Une fête","Une loi"], r:"Valeurs de la Révolution", e:"Cette devise est apparue pendant la Révolution et représente les droits et la solidarité entre les citoyens."},
 {q:"Quel groupe social était le plus imposé ?", a:["Le Tiers-État","La noblesse","Le clergé","Les soldats"], r:"Le Tiers-État", e:"Le Tiers-État représente la majorité de la population et supportait la plupart des impôts, contrairement aux nobles et au clergé."},
-{q:"Qui a écrit la Déclaration des droits de l’Homme ?", a:["L’Assemblée nationale","Napoléon","Louis XVI","Robespierre"], r:"L’Assemblée nationale", e:"La Déclaration des droits de l’Homme et du Citoyen est votée en 1789 par l'Assemblée nationale constituante, affirmant les droits fondamentaux."},
-{q:"Qui dirigeait le Comité de Salut Public ?", a:["Robespierre","Louis XVI","Napoléon","Danton"], r:"Robespierre", e:"Robespierre dirige le Comité de Salut Public pendant la Terreur (1793-1794) et centralise le pouvoir pour défendre la Révolution."},
-{q:"Quel instrument symbolise la Révolution ?", a:["La guillotine","La tour Eiffel","La Bastille","Le drapeau tricolore"], r:"La guillotine", e:"La guillotine est utilisée pour exécuter les condamnés et symbolise la justice révolutionnaire et la Terreur."},
-{q:"Quand Napoléon devient-il empereur ?", a:["1804","1789","1792","1815"], r:"1804", e:"Napoléon se couronne empereur en 1804 après avoir consolidé son pouvoir et stabilisé la France post-révolution."},
-{q:"Qu’est-ce que le Tiers-État ?", a:["Le peuple","Les nobles","Le clergé","Les soldats"], r:"Le peuple", e:"Le Tiers-État représente le peuple français, comprenant bourgeois, paysans et artisans, qui formaient la majorité de la population."},
-// ... tu peux ajouter jusqu'à 50 questions en suivant le même format
+// ... Ajoute toutes les 50 questions avec explications détaillées ici
 ];
 
 // ===== UTILS =====
@@ -74,7 +104,7 @@ pseudo=pseudoInput.value.trim()||"Anonyme";
 document.getElementById("startDiv").style.display="none"; 
 quizDiv.style.display="block";
 score=0; i=0;
-banqueQuestions=shuffle([...banqueQuestions]).slice(0,10); // prend 10 questions par session
+banqueQuestions=shuffle([...banqueQuestions]).slice(0,10);
 showQuestion();
 }
 
@@ -133,6 +163,7 @@ resultDiv.style.display="none"; document.getElementById("startDiv").style.displa
 </script>
 </body>
 </html>
+
 
 
 
