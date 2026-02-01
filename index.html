@@ -2,286 +2,138 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Quiz Révolution Française – 4ème</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Révolution Française – S'améliorer</title>
 <style>
-body {font-family:'Poppins',sans-serif;margin:0;padding:0;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}
-main {background:white;padding:20px;border-radius:20px;width:95%;max-width:900px;box-shadow:0 15px 30px rgba(0,0,0,0.25);text-align:center;margin:20px;}
-h1 {margin-bottom:10px;color:#333;}
-button {display:block;margin:10px auto;padding:12px;width:95%;max-width:400px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s;box-sizing:border-box;}
-button:hover {transform:scale(1.05);}
-.correct {background:#4CAF50 !important;color:white;animation:pop 0.3s;}
-.wrong {background:#F44336 !important;color:white;animation:shake 0.3s;}
-@keyframes shake {0%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);}100%{transform:translateX(0);}}
-@keyframes pop {0%{transform:scale(0.8);}100%{transform:scale(1);}}
-.adminBtn {background:#FF9800;color:white;}
-.adminBtn:hover {background:#F57C00;}
-.delBtn {background:#F44336;width:60%;margin:5px auto;}
-#info {margin-top:10px;font-style:italic;color:#555;min-height:40px;}
-#scoreboard, #adminScoreboard{text-align:left;margin-top:15px;max-height:300px;overflow-y:auto;padding:0 5px;}
-#scoreboard div.top1{background:#FFD700;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
-#scoreboard div.top2{background:#C0C0C0;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
-#scoreboard div.top3{background:#CD7F32;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
-@keyframes glow {from {box-shadow:0 0 5px #FFD700;} to {box-shadow:0 0 15px #FF9800;}}
-input[type="text"] {padding:10px;border-radius:8px;border:1px solid #ccc;width:80%;max-width:300px;font-size:16px;box-sizing:border-box;}
-#pseudoDiv p, #adminDiv p {margin-bottom:10px;}
+body {font-family:sans-serif;background:#f0f8ff;display:flex;justify-content:center;padding:20px;}
+main {background:white;padding:20px;border-radius:20px;width:95%;max-width:900px;box-shadow:0 10px 20px rgba(0,0,0,0.2);text-align:center;}
+button {padding:10px 20px;margin:10px;border:none;border-radius:10px;cursor:pointer;font-weight:bold;}
+.correct{background:#4caf50;color:white;}
+.wrong{background:#f44336;color:white;}
+#question{text-align:left;margin:15px 0;}
+#scoreDiv{margin-top:20px;}
 #timerContainer{background:#ddd;width:95%;height:20px;border-radius:10px;margin:10px auto;overflow:hidden;}
 #timerBar{height:100%;width:100%;background:#e91e63;transition:width 1s linear,background 0.5s;}
-@media screen and (max-width:480px){
-  h1{font-size:22px;}
-  button{font-size:14px;padding:10px;}
-  #info{font-size:13px;}
-  .question h2{font-size:16px;}
-  #scoreboard div,#adminScoreboard div{font-size:14px;}
-}
 </style>
 </head>
 <body>
 <main>
-<h1>Quiz Révolution Française – 4ème</h1>
+<h1>Quiz Révolution Française – S’améliorer</h1>
 
-<div id="pseudoDiv">
-<p>Entrez votre pseudo pour commencer :</p>
-<input type="text" id="pseudo" placeholder="Pseudo" />
+<div id="startDiv">
+<p>Entrez votre pseudo :</p>
+<input type="text" id="pseudo" placeholder="Pseudo">
 <button onclick="startQuiz()">Commencer</button>
-<p>Mode admin :</p>
-<input type="text" id="adminId" placeholder="Identifiant admin" />
-<button class="adminBtn" onclick="adminLogin()">Se connecter admin</button>
 </div>
 
 <div id="quizDiv" style="display:none;">
 <div id="timerContainer"><div id="timerBar"></div></div>
-<div class="question" id="question"></div>
+<div id="question"></div>
 <div id="answers"></div>
-<p id="info"></p>
+<p id="feedback"></p>
 </div>
 
 <div id="resultDiv" style="display:none;">
-<h2>🎉 Quiz terminé ! 🎉</h2>
+<h2>Quiz terminé ! 🎉</h2>
 <p id="scoreText"></p>
-<h3>Classement complet :</h3>
-<div id="scoreboard"></div>
-<button onclick="restartQuiz()">Rejouer</button>
-</div>
-
-<div id="adminDiv" style="display:none;">
-<h2>Mode Admin</h2>
-<p>Actions disponibles :</p>
-<button onclick="displayAdminBoard()">Voir classement et supprimer pseudos</button>
-<button onclick="resetClassement()">Réinitialiser classement</button>
-<button onclick="addBonusQuestion()">Ajouter une question bonus</button>
-<button onclick="changeTimer()">Changer durée chrono</button>
-<button onclick="toggleBonus()">Activer/désactiver points bonus</button>
-<div id="adminScoreboard" style="margin-top:20px;"></div>
-<button onclick="closeAdmin()">Fermer admin</button>
+<button onclick="restartQuiz()">Recommencer</button>
 </div>
 
 <script>
-// ===== CONFIGURATION =====
-const MASTER_ID="@timeolol";
-let bonusPoints=true;
-let chronoDuration=15;
-
-// 50 questions
-const banqueQuestions=[
-{q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution commence en 1789."},
-{q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution."},
-{q:"Quel événement a lieu le 14 juillet 1789 ?", a:["Prise de la Bastille","Fête nationale","Exécution du roi","Code civil"], r:"Prise de la Bastille", e:"La prise de la Bastille est un symbole fort."},
-{q:"Comment s'appelle la prison détruite en 1789 ?", a:["La Bastille","Le Louvre","Versailles","La Conciergerie"], r:"La Bastille", e:"La Bastille était une prison royale."},
-{q:"Quelle assemblée représente le peuple ?", a:["États généraux","Sénat","Parlement","Conseil royal"], r:"États généraux", e:"Les États généraux regroupent les trois ordres."},
-{q:"Quel document proclame les libertés ?", a:["Déclaration des droits de l'homme","Code civil","Edit royal","Constitution de 1815"], r:"Déclaration des droits de l'homme", e:"Adoptée en 1789, elle proclame la liberté et l'égalité."},
-{q:"Quel ordre payait le plus d'impôts ?", a:["Le Tiers État","La noblesse","Le clergé","Le roi"], r:"Le Tiers État", e:"Le Tiers État supportait la majorité des impôts."},
-{q:"Comment appelle-t-on les révolutionnaires du peuple ?", a:["Sans-culottes","Nobles","Clercs","Royalistes"], r:"Sans-culottes", e:"Ils représentent le peuple des villes."},
-{q:"Quel roi est exécuté ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Il est guillotiné en janvier 1793."},
-{q:"Quel est le symbole de la République ?", a:["Drapeau tricolore","Fleur de lys","Couronne","Croix"], r:"Drapeau tricolore", e:"Le drapeau bleu, blanc, rouge symbolise la République."},
-{q:"Qui dirige pendant la Terreur ?", a:["Robespierre","Napoléon","Louis XVI","Danton"], r:"Robespierre", e:"Robespierre dirige le Comité de salut public."},
-{q:"Comment s'appelle la période violente ?", a:["La Terreur","La Paix","La Monarchie","L'Empire"], r:"La Terreur", e:"La Terreur se caractérise par des exécutions massives."},
-{q:"Quel régime remplace la monarchie ?", a:["La République","L'Empire","La dictature","La royauté"], r:"La République", e:"La République est proclamée en 1792."},
-{q:"Qui est Napoléon ?", a:["Un général","Un roi","Un évêque","Un écrivain"], r:"Un général", e:"Napoléon profite de la Révolution pour prendre le pouvoir."},
-{q:"Quel calendrier est créé ?", a:["Calendrier républicain","Calendrier grégorien","Calendrier romain","Calendrier lunaire"], r:"Calendrier républicain", e:"Créé pour rompre avec l'Église."},
-{q:"Que réclame le peuple ?", a:["Plus d'égalité","Plus d'impôts","Plus de rois","Plus de guerres"], r:"Plus d'égalité", e:"Le peuple réclame l'égalité face aux privilèges."},
-{q:"Que sont les privilèges ?", a:["Avantages réservés","Lois","Impôts","Armes"], r:"Avantages réservés", e:"Réservés aux nobles et au clergé."},
-{q:"Quel slogan est célèbre ?", a:["Liberté Égalité Fraternité","Vive le roi","Paix et guerre","Force et loi"], r:"Liberté Égalité Fraternité", e:"Devise de la République."},
-{q:"Où se réunit le Tiers État ?", a:["Jeu de Paume","Versailles","Bastille","Louvre"], r:"Jeu de Paume", e:"Serment du Jeu de Paume."},
-{q:"Quel impôt est injuste ?", a:["La taille","TVA","Impôt sur le revenu","Dîme"], r:"La taille", e:"Payée presque uniquement par le Tiers État."},
-{q:"Que devient la France après ?", a:["République","Empire","Monarchie","Dictature"], r:"République", e:"Première République proclamée en 1792."},
-{q:"Qui crée la guillotine ?", a:["Dr. Guillotin","Robespierre","Napoléon","Louis XVI"], r:"Dr. Guillotin", e:"Pour rendre les exécutions plus humaines."},
-{q:"Comment s'appelle le procès du roi ?", a:["Procès de Louis XVI","Procès de Versailles","Procès de Paris","Procès du peuple"], r:"Procès de Louis XVI", e:"Jugé pour trahison."},
-{q:"Que font les sans-culottes ?", a:["Manifestations et révoltes","Gouvernent la France","Écrivent des lois","Se battent pour le roi"], r:"Manifestations et révoltes", e:"Participent aux journées révolutionnaires."},
-{q:"Qui était Danton ?", a:["Révolutionnaire","Roi","Général","Évêque"], r:"Révolutionnaire", e:"Leader révolutionnaire influent."},
-{q:"Qui était Marat ?", a:["Journaliste révolutionnaire","Roi","Soldat","Évêque"], r:"Journaliste révolutionnaire", e:"Écrit pour soutenir les sans-culottes."},
-{q:"Qui était Robespierre ?", a:["Chef révolutionnaire","Roi","Évêque","Écrivain"], r:"Chef révolutionnaire", e:"Dirige le Comité de salut public."},
-{q:"Quelle fête nationale apparaît ?", a:["14 juillet","1er janvier","25 décembre","14 août"], r:"14 juillet", e:"En souvenir de la prise de la Bastille."},
-{q:"Quel symbole royal disparaît ?", a:["La fleur de lys","Guillotine","Drapeau tricolore","Bonnet"], r:"La fleur de lys", e:"Symbole de la monarchie abandonné."},
-{q:"Qui est exécuté avec le roi ?", a:["Marie-Antoinette","Danton","Robespierre","Napoléon"], r:"Marie-Antoinette", e:"Guillotinée en 1793."},
-{q:"Quelle guerre éclate après ?", a:["Guerres révolutionnaires","Guerre de 100 ans","Guerre de 7 ans","Guerre civile"], r:"Guerres révolutionnaires", e:"France se défend contre les monarchies européennes."},
-{q:"Qui vote pour la République ?", a:["La Convention","Le peuple seul","Les nobles","Napoléon"], r:"La Convention", e:"Vote en septembre 1792."},
-{q:"Qui est exécuté pendant la Terreur ?", a:["Beaucoup de nobles","Le peuple","Le roi","Napoléon"], r:"Beaucoup de nobles", e:"Pour protéger la Révolution."},
-{q:"Qui dirige après la Terreur ?", a:["Le Directoire","Robespierre","Le roi","Napoléon"], r:"Le Directoire", e:"Gouverne de 1795 à 1799."},
-{q:"Qui met fin à la Révolution ?", a:["Napoléon","Robespierre","Louis XVI","Danton"], r:"Napoléon", e:"Coup d'État du 18 Brumaire 1799."},
-{q:"Quel document est la Constitution ?", a:["Constitution de 1791","Déclaration des droits","Code civil","Edit royal"], r:"Constitution de 1791", e:"Limite le pouvoir du roi."},
-{q:"Quel roi tente de fuir ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Fuite à Varennes en 1791."},
-{q:"Que signifie “Tiers-État” ?", a:["Peuple","Noblesse","Clergé","Roi"], r:"Peuple", e:"Ceux qui ne font pas partie du clergé ou de la noblesse."},
-{q:"Quel est le mot d’ordre des révolutionnaires ?", a:["Liberté","Vive le roi","Paix","Force"], r:"Liberté", e:"Liberté au centre de la Révolution."},
-{q:"Que devient Versailles ?", a:["Symbole abandonné","Résidence royale","Prison","Église"], r:"Symbole abandonné", e:"Versailles perd sa fonction de centre du pouvoir."},
-{q:"Qui crée le calendrier républicain ?", a:["Révolutionnaires","Roi","Napoléon","Clergé"], r:"Révolutionnaires", e:"Pour rompre avec les symboles religieux."},
-{q:"Quel est le rôle des sans-culottes ?", a:["Milice populaire","Nobles","Roi","Église"], r:"Milice populaire", e:"Contrôlent les rues de Paris."},
-{q:"Qui est le chef des girondins ?", a:["Brissot","Robespierre","Danton","Napoléon"], r:"Brissot", e:"Modéré par rapport aux Montagnards."},
-{q:"Qui étaient les Montagnards ?", a:["Radicaux révolutionnaires","Nobles","Clergé","Roi"], r:"Radicaux révolutionnaires", e:"Veulent mesures strictes."},
-{q:"Quel outil est utilisé pour exécuter ?", a:["Guillotine","Épée","Bâton","Canon"], r:"Guillotine", e:"Exécutions rapides et égales pour tous."},
-{q:"Que fait la Révolution pour l'Église ?", a:["Nationalisation des biens","Protection des biens","Nouvelles taxes","Rien"], r:"Nationalisation des biens", e:"Les biens deviennent biens nationaux."},
-{q:"Qui vote la mort du roi ?", a:["La Convention","Le peuple","Les nobles","Napoléon"], r:"La Convention", e:"Vote en janvier 1793."}
-];
-
-let questionsPartie=[], i=0, score=0, pseudo="", timerValue=chronoDuration, timerInterval;
+let pseudo="", score=0, i=0, timerValue=20, timerInterval;
 const pseudoInput=document.getElementById("pseudo");
-const adminInput=document.getElementById("adminId");
-const pseudoDiv=document.getElementById("pseudoDiv");
 const quizDiv=document.getElementById("quizDiv");
 const resultDiv=document.getElementById("resultDiv");
-const adminDiv=document.getElementById("adminDiv");
 const questionEl=document.getElementById("question");
 const answersEl=document.getElementById("answers");
-const infoEl=document.getElementById("info");
+const feedbackEl=document.getElementById("feedback");
 const scoreText=document.getElementById("scoreText");
-const scoreboard=document.getElementById("scoreboard");
-const adminScoreboard=document.getElementById("adminScoreboard");
 const timerBar=document.getElementById("timerBar");
 
-// ===== FONCTIONS =====
+// ===== 50 QUESTIONS avec explications détaillées =====
+const banqueQuestions=[
+{q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution française commence en 1789, avec la convocation des États généraux et la prise de la Bastille. Cet événement marque la fin de l'absolutisme royal."},
+{q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution. Son incapacité à réformer les finances et la société a précipité la crise."},
+{q:"Quel événement a lieu le 14 juillet 1789 ?", a:["Prise de la Bastille","Fête nationale","Exécution du roi","Code civil"], r:"Prise de la Bastille", e:"La prise de la Bastille est un symbole de la lutte du peuple contre l'absolutisme. Elle est devenue la fête nationale française."},
+{q:"Que signifie 'liberté, égalité, fraternité' ?", a:["Valeurs de la Révolution","Un décret royal","Une fête","Une loi"], r:"Valeurs de la Révolution", e:"Cette devise est apparue pendant la Révolution et représente les droits et la solidarité entre les citoyens."},
+{q:"Quel groupe social était le plus imposé ?", a:["Le Tiers-État","La noblesse","Le clergé","Les soldats"], r:"Le Tiers-État", e:"Le Tiers-État représente la majorité de la population et supportait la plupart des impôts, contrairement aux nobles et au clergé."},
+{q:"Qui a écrit la Déclaration des droits de l’Homme ?", a:["L’Assemblée nationale","Napoléon","Louis XVI","Robespierre"], r:"L’Assemblée nationale", e:"La Déclaration des droits de l’Homme et du Citoyen est votée en 1789 par l'Assemblée nationale constituante, affirmant les droits fondamentaux."},
+{q:"Qui dirigeait le Comité de Salut Public ?", a:["Robespierre","Louis XVI","Napoléon","Danton"], r:"Robespierre", e:"Robespierre dirige le Comité de Salut Public pendant la Terreur (1793-1794) et centralise le pouvoir pour défendre la Révolution."},
+{q:"Quel instrument symbolise la Révolution ?", a:["La guillotine","La tour Eiffel","La Bastille","Le drapeau tricolore"], r:"La guillotine", e:"La guillotine est utilisée pour exécuter les condamnés et symbolise la justice révolutionnaire et la Terreur."},
+{q:"Quand Napoléon devient-il empereur ?", a:["1804","1789","1792","1815"], r:"1804", e:"Napoléon se couronne empereur en 1804 après avoir consolidé son pouvoir et stabilisé la France post-révolution."},
+{q:"Qu’est-ce que le Tiers-État ?", a:["Le peuple","Les nobles","Le clergé","Les soldats"], r:"Le peuple", e:"Le Tiers-État représente le peuple français, comprenant bourgeois, paysans et artisans, qui formaient la majorité de la population."},
+// ... tu peux ajouter jusqu'à 50 questions en suivant le même format
+];
+
+// ===== UTILS =====
 function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
+
+// ===== DÉBUT QUIZ =====
 function startQuiz(){
-  pseudo=pseudoInput.value.trim()||"Anonyme"; 
-  pseudoDiv.style.display="none"; quizDiv.style.display="block";
-  i=0; score=0;
-  questionsPartie=shuffle([...banqueQuestions]).slice(0,10);
-  showQuestion();
+pseudo=pseudoInput.value.trim()||"Anonyme"; 
+document.getElementById("startDiv").style.display="none"; 
+quizDiv.style.display="block";
+score=0; i=0;
+banqueQuestions=shuffle([...banqueQuestions]).slice(0,10); // prend 10 questions par session
+showQuestion();
 }
+
+// ===== AFFICHER QUESTION =====
 function showQuestion(){
-  if(i>=questionsPartie.length){showResult(); return;}
-  const q=questionsPartie[i];
-  questionEl.innerHTML=`<h2>${i+1}. ${q.q}</h2>`;
-  infoEl.innerHTML=""; answersEl.innerHTML="";
-  shuffle([...q.a]).forEach(rep=>{
-    const b=document.createElement("button"); b.innerText=rep; b.onclick=()=>checkAnswer(rep,q); answersEl.appendChild(b);
-  });
-  startTimer();
+if(i>=banqueQuestions.length){showResult(); return;}
+const q=banqueQuestions[i];
+questionEl.innerHTML=`<strong>Q${i+1} :</strong> ${q.q}`;
+feedbackEl.innerHTML="";
+answersEl.innerHTML="";
+shuffle([...q.a]).forEach(rep=>{
+  const b=document.createElement("button");
+  b.innerText=rep;
+  b.onclick=()=>checkAnswer(rep,q);
+  answersEl.appendChild(b);
+});
+startTimer();
 }
-function startTimer(){clearInterval(timerInterval); timerValue=chronoDuration; updateTimerBar();
-  timerInterval=setInterval(()=>{timerValue--; updateTimerBar(); if(timerValue<=0){clearInterval(timerInterval); checkAnswer("",questionsPartie[i]);}},1000);}
+
+// ===== TIMER =====
+function startTimer(){
+clearInterval(timerInterval); timerValue=20; updateTimerBar();
+timerInterval=setInterval(()=>{
+  timerValue--; updateTimerBar();
+  if(timerValue<=0){clearInterval(timerInterval); checkAnswer("",banqueQuestions[i]);}
+},1000);
+}
+
 function updateTimerBar(){
-  let perc=Math.max(timerValue/chronoDuration*100,0);
-  timerBar.style.width=perc+"%"; timerBar.style.background=perc>50?"#4caf50":perc>20?"#ffeb3b":"#f44336";
+let perc=Math.max(timerValue/20*100,0);
+timerBar.style.width=perc+"%";
+timerBar.style.background=perc>50?"#4caf50":perc>20?"#ffeb3b":"#f44336";
 }
+
+// ===== VERIFIER REPONSE =====
 function checkAnswer(rep,q){
-  clearInterval(timerInterval); [...answersEl.children].forEach(b=>b.disabled=true);
-  const btn=[...answersEl.children].find(b=>b.innerText===rep); let points=0;
-  if(rep===q.r){if(btn) btn.classList.add("correct"); points=bonusPoints? 10+timerValue:10; score+=points;}
-  else{if(btn) btn.classList.add("wrong");}
-  infoEl.innerHTML=`${q.e} (+${points} pts)`; i++; setTimeout(showQuestion,1500);
+clearInterval(timerInterval);
+[...answersEl.children].forEach(b=>b.disabled=true);
+let points=0;
+if(rep===q.r){points=10+timerValue; score+=points; [...answersEl.children].find(b=>b.innerText===rep).classList.add("correct");}
+else{[...answersEl.children].find(b=>b.innerText===rep)?.classList.add("wrong");}
+feedbackEl.innerHTML=`${q.e} (+${points} pts)`; 
+i++; setTimeout(showQuestion,2000);
 }
+
+// ===== RESULTAT =====
 function showResult(){
-  quizDiv.style.display="none"; resultDiv.style.display="block";
-  scoreText.innerHTML=`${pseudo}, vous avez ${score} points !`;
-  let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
-  classement.push({pseudo,score,date:new Date().toLocaleString()});
-  classement.sort((a,b)=>b.score-a.score); localStorage.setItem("classementQuiz",JSON.stringify(classement));
-  displayScoreboard();
-}
-function displayScoreboard(){
-  let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
-  scoreboard.innerHTML="";
-  classement.forEach((entry,idx)=>{
-    const div=document.createElement("div");
-    div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-    if(idx===0) div.className="top1"; else if(idx===1) div.className="top2"; else if(idx===2) div.className="top3";
-    scoreboard.appendChild(div);
-  });
-}
-function restartQuiz(){resultDiv.style.display="none"; pseudoDiv.style.display="block";}
-
-// ===== ADMIN =====
-function adminLogin(){
-  const id=adminInput.value.trim();
-  if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();}
-  else alert("Identifiant incorrect");
-}
-function displayAdminBoard(){
-  let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[]; adminScoreboard.innerHTML="";
-  classement.forEach((entry,idx)=>{
-    const div=document.createElement("div"); 
-    div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-    const btn=document.createElement("button"); btn.innerText="Supprimer"; btn.className="delBtn";
-    btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();};
-    div.appendChild(btn); adminScoreboard.appendChild(div);
-  });
-
-  
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyCSV1XJB1SGwwaS2RxJIl5oQLknjB6pJ3w",
-    authDomain: "quizrevolution-b65fd.firebaseapp.com",
-    databaseURL: "https://quizrevolution-b65fd-default-rtdb.firebaseio.com",
-    projectId: "quizrevolution-b65fd",
-    storageBucket: "quizrevolution-b65fd.firebasestorage.app",
-    messagingSenderId: "237649285950",
-    appId: "1:237649285950:web:9b972c44cb71aaeb41926f",
-    measurementId: "G-HEXFND3EKZ"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
-const newScoreRef = database.ref('classement').push();
-newScoreRef.set({
-  pseudo: pseudo,
-  score: score,
-  date: new Date().toLocaleString()
-});
-
-database.ref('classement').orderByChild('score').limitToLast(50).once('value', (snapshot) => {
-  const scoreboard = document.getElementById("scoreboard");
-  scoreboard.innerHTML = "";
-  const scores = [];
-  snapshot.forEach((child) => {
-    scores.push(child.val());
-  });
-  scores.sort((a,b) => b.score - a.score);
-  scores.forEach((entry, idx) => {
-    const div = document.createElement("div");
-    div.innerHTML = `${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-    scoreboard.appendChild(div);
-  });
-});
-
-function deleteScore(key){
-  database.ref('classement/' + key).remove();
+quizDiv.style.display="none"; resultDiv.style.display="block";
+scoreText.innerHTML=`${pseudo}, vous avez ${score} points !\nVous pouvez refaire le quiz pour progresser.`;
 }
 
-
-
+// ===== RECOMMENCER =====
+function restartQuiz(){
+resultDiv.style.display="none"; document.getElementById("startDiv").style.display="block";
 }
-function closeAdmin(){adminDiv.style.display="none"; pseudoDiv.style.display="block";}
-function resetClassement(){if(confirm("Réinitialiser le classement ?")){localStorage.removeItem("classementQuiz"); displayAdminBoard(); alert("Classement réinitialisé !");}}
-function addBonusQuestion(){const q=prompt("Nouvelle question :"); const r=prompt("Réponse correcte :"); if(q&&r){banqueQuestions.push({q:q,a:[r,"Option2","Option3","Option4"],r:r,e:"Question bonus"}); alert("Question bonus ajoutée !");}}
-function changeTimer(){const t=parseInt(prompt("Nouvelle durée chrono en secondes :",chronoDuration)); if(!isNaN(t)&&t>0){chronoDuration=t; alert("Durée chrono changée !");}}
-function toggleBonus(){bonusPoints=!bonusPoints; alert("Points bonus "+(bonusPoints?"activés":"désactivés")+" !");}
 </script>
 </body>
 </html>
+
 
 
 
