@@ -76,62 +76,6 @@ input[type="text"] {padding:10px;border-radius:8px;border:1px solid #ccc;width:8
 <button onclick="closeAdmin()">Fermer admin</button>
 </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyCSV1XJB1SGwwaS2RxJIl5oQLknjB6pJ3w",
-    authDomain: "quizrevolution-b65fd.firebaseapp.com",
-    databaseURL: "https://quizrevolution-b65fd-default-rtdb.firebaseio.com",
-    projectId: "quizrevolution-b65fd",
-    storageBucket: "quizrevolution-b65fd.firebasestorage.app",
-    messagingSenderId: "237649285950",
-    appId: "1:237649285950:web:9b972c44cb71aaeb41926f",
-    measurementId: "G-HEXFND3EKZ"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
-const newScoreRef = database.ref('classement').push();
-newScoreRef.set({
-  pseudo: pseudo,
-  score: score,
-  date: new Date().toLocaleString()
-});
-
-database.ref('classement').orderByChild('score').limitToLast(50).once('value', (snapshot) => {
-  const scoreboard = document.getElementById("scoreboard");
-  scoreboard.innerHTML = "";
-  const scores = [];
-  snapshot.forEach((child) => {
-    scores.push(child.val());
-  });
-  scores.sort((a,b) => b.score - a.score);
-  scores.forEach((entry, idx) => {
-    const div = document.createElement("div");
-    div.innerHTML = `${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-    scoreboard.appendChild(div);
-  });
-});
-
-function deleteScore(key){
-  database.ref('classement/' + key).remove();
-}
-
-
-
 <script>
 // ===== CONFIGURATION =====
 const MASTER_ID="@timeolol";
@@ -271,6 +215,64 @@ function displayAdminBoard(){
     btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();};
     div.appendChild(btn); adminScoreboard.appendChild(div);
   });
+
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyCSV1XJB1SGwwaS2RxJIl5oQLknjB6pJ3w",
+    authDomain: "quizrevolution-b65fd.firebaseapp.com",
+    databaseURL: "https://quizrevolution-b65fd-default-rtdb.firebaseio.com",
+    projectId: "quizrevolution-b65fd",
+    storageBucket: "quizrevolution-b65fd.firebasestorage.app",
+    messagingSenderId: "237649285950",
+    appId: "1:237649285950:web:9b972c44cb71aaeb41926f",
+    measurementId: "G-HEXFND3EKZ"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
+const newScoreRef = database.ref('classement').push();
+newScoreRef.set({
+  pseudo: pseudo,
+  score: score,
+  date: new Date().toLocaleString()
+});
+
+database.ref('classement').orderByChild('score').limitToLast(50).once('value', (snapshot) => {
+  const scoreboard = document.getElementById("scoreboard");
+  scoreboard.innerHTML = "";
+  const scores = [];
+  snapshot.forEach((child) => {
+    scores.push(child.val());
+  });
+  scores.sort((a,b) => b.score - a.score);
+  scores.forEach((entry, idx) => {
+    const div = document.createElement("div");
+    div.innerHTML = `${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
+    scoreboard.appendChild(div);
+  });
+});
+
+function deleteScore(key){
+  database.ref('classement/' + key).remove();
+}
+
+
+
 }
 function closeAdmin(){adminDiv.style.display="none"; pseudoDiv.style.display="block";}
 function resetClassement(){if(confirm("Réinitialiser le classement ?")){localStorage.removeItem("classementQuiz"); displayAdminBoard(); alert("Classement réinitialisé !");}}
@@ -280,6 +282,7 @@ function toggleBonus(){bonusPoints=!bonusPoints; alert("Points bonus "+(bonusPoi
 </script>
 </body>
 </html>
+
 
 
 
