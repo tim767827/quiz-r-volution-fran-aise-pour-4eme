@@ -5,10 +5,11 @@
 <title>Quiz Révolution Française – 4ème</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;}
-main {background:white;padding:30px;border-radius:20px;width:90%;max-width:900px;box-shadow:0 20px 40px rgba(0,0,0,0.3);text-align:center;transition:all 0.3s;}
+/* ===== Reset et layout ===== */
+body {font-family:'Poppins',sans-serif;margin:0;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:center;min-height:100vh;}
+main {background:white;padding:20px;border-radius:20px;width:95%;max-width:900px;box-shadow:0 15px 30px rgba(0,0,0,0.25);text-align:center;transition:all 0.3s;}
 h1 {margin-bottom:10px;color:#333;}
-button {display:block;margin:10px auto;padding:14px;width:80%;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s;}
+button {display:block;margin:10px auto;padding:12px;width:95%;max-width:400px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s;}
 button:hover {transform:scale(1.05);}
 .correct {background:#4CAF50 !important;color:white;animation:pop 0.3s;}
 .wrong {background:#F44336 !important;color:white;animation:shake 0.3s;}
@@ -17,16 +18,23 @@ button:hover {transform:scale(1.05);}
 .adminBtn {background:#FF9800;color:white;}
 .adminBtn:hover {background:#F57C00;}
 .delBtn {background:#F44336;width:60%;margin:5px auto;}
-#info {margin-top:15px;font-style:italic;color:#555;min-height:40px;}
-#scoreboard, #adminScoreboard{text-align:left;margin-top:20px;max-height:300px;overflow-y:auto;}
+#info {margin-top:10px;font-style:italic;color:#555;min-height:40px;}
+#scoreboard, #adminScoreboard{text-align:left;margin-top:15px;max-height:300px;overflow-y:auto;}
 #scoreboard div.top1{background:#FFD700;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
 #scoreboard div.top2{background:#C0C0C0;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
 #scoreboard div.top3{background:#CD7F32;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
 @keyframes glow {from {box-shadow:0 0 5px #FFD700;} to {box-shadow:0 0 15px #FF9800;}}
-input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:16px;}
+input {padding:10px;border-radius:8px;border:1px solid #ccc;width:80%;max-width:300px;font-size:16px;}
 #pseudoDiv p {margin-bottom:10px;}
-#timerContainer{background:#ddd;width:80%;height:20px;border-radius:10px;margin:10px auto;overflow:hidden;}
+#timerContainer{background:#ddd;width:95%;height:20px;border-radius:10px;margin:10px auto;overflow:hidden;}
 #timerBar{height:100%;width:100%;background:#e91e63;transition:width 1s linear,background 0.5s;}
+@media screen and (max-width:480px){
+  h1{font-size:22px;}
+  button{font-size:14px;padding:10px;}
+  #info{font-size:13px;}
+  .question h2{font-size:16px;}
+  #scoreboard div,#adminScoreboard div{font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -67,13 +75,13 @@ input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:
 </div>
 
 <script>
+// ===== CONFIGURATION =====
 const MASTER_ID="@timeolol";
 let bonusPoints=true;
 let chronoDuration=15;
 
+// 50 questions pour 4ème
 const banqueQuestions=[
-/* 50 questions ici */
-[
 {q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution commence en 1789."},
 {q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution."},
 {q:"Quel événement a lieu le 14 juillet 1789 ?", a:["Prise de la Bastille","Fête nationale","Exécution du roi","Code civil"], r:"Prise de la Bastille", e:"La prise de la Bastille est un symbole fort."},
@@ -137,63 +145,65 @@ const scoreboard=document.getElementById("scoreboard");
 const adminScoreboard=document.getElementById("adminScoreboard");
 const timerBar=document.getElementById("timerBar");
 
+// ===== FONCTIONS =====
 function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
 function startQuiz(){
-pseudo=pseudoInput.value.trim()||"Anonyme"; pseudoDiv.style.display="none"; quizDiv.style.display="block";
-i=0; score=0;
-questionsPartie=shuffle([...banqueQuestions]).slice(0,10);
-showQuestion();
+  pseudo=pseudoInput.value.trim()||"Anonyme"; 
+  pseudoDiv.style.display="none"; quizDiv.style.display="block";
+  i=0; score=0;
+  questionsPartie=shuffle([...banqueQuestions]).slice(0,10);
+  showQuestion();
 }
 function showQuestion(){
-if(i>=questionsPartie.length){showResult(); return;}
-const q=questionsPartie[i];
-questionEl.innerHTML=`<h2>${i+1}. ${q.q}</h2>`;
-infoEl.innerHTML=""; answersEl.innerHTML="";
-shuffle([...q.a]).forEach(rep=>{
-const b=document.createElement("button"); b.innerText=rep; b.onclick=()=>checkAnswer(rep,q); answersEl.appendChild(b);
-});
-startTimer();
+  if(i>=questionsPartie.length){showResult(); return;}
+  const q=questionsPartie[i];
+  questionEl.innerHTML=`<h2>${i+1}. ${q.q}</h2>`;
+  infoEl.innerHTML=""; answersEl.innerHTML="";
+  shuffle([...q.a]).forEach(rep=>{
+    const b=document.createElement("button"); b.innerText=rep; b.onclick=()=>checkAnswer(rep,q); answersEl.appendChild(b);
+  });
+  startTimer();
 }
 function startTimer(){clearInterval(timerInterval); timerValue=chronoDuration; updateTimerBar();
-timerInterval=setInterval(()=>{timerValue--; updateTimerBar(); if(timerValue<=0){clearInterval(timerInterval); checkAnswer("",questionsPartie[i]);}},1000);}
+  timerInterval=setInterval(()=>{timerValue--; updateTimerBar(); if(timerValue<=0){clearInterval(timerInterval); checkAnswer("",questionsPartie[i]);}},1000);}
 function updateTimerBar(){
-let perc=Math.max(timerValue/chronoDuration*100,0);
-timerBar.style.width=perc+"%"; timerBar.style.background=perc>50?"#4caf50":perc>20?"#ffeb3b":"#f44336";
+  let perc=Math.max(timerValue/chronoDuration*100,0);
+  timerBar.style.width=perc+"%"; timerBar.style.background=perc>50?"#4caf50":perc>20?"#ffeb3b":"#f44336";
 }
 function checkAnswer(rep,q){
-clearInterval(timerInterval); [...answersEl.children].forEach(b=>b.disabled=true);
-const btn=[...answersEl.children].find(b=>b.innerText===rep); let points=0;
-if(rep===q.r){if(btn) btn.classList.add("correct"); points=bonusPoints? 10+timerValue:10; score+=points;}
-else{if(btn) btn.classList.add("wrong");}
-infoEl.innerHTML=`${q.e} (+${points} pts)`; i++; setTimeout(showQuestion,1500);
+  clearInterval(timerInterval); [...answersEl.children].forEach(b=>b.disabled=true);
+  const btn=[...answersEl.children].find(b=>b.innerText===rep); let points=0;
+  if(rep===q.r){if(btn) btn.classList.add("correct"); points=bonusPoints? 10+timerValue:10; score+=points;}
+  else{if(btn) btn.classList.add("wrong");}
+  infoEl.innerHTML=`${q.e} (+${points} pts)`; i++; setTimeout(showQuestion,1500);
 }
 function showResult(){
-quizDiv.style.display="none"; resultDiv.style.display="block";
-scoreText.innerHTML=`${pseudo}, vous avez ${score} points !`;
-let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
-classement.push({pseudo,score,date:new Date().toLocaleString()});
-classement.sort((a,b)=>b.score-a.score); localStorage.setItem("classementQuiz",JSON.stringify(classement));
-displayScoreboard(); // toujours visible pour tous
+  quizDiv.style.display="none"; resultDiv.style.display="block";
+  scoreText.innerHTML=`${pseudo}, vous avez ${score} points !`;
+  let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
+  classement.push({pseudo,score,date:new Date().toLocaleString()});
+  classement.sort((a,b)=>b.score-a.score); localStorage.setItem("classementQuiz",JSON.stringify(classement));
+  displayScoreboard();
 }
 function displayScoreboard(){
-let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
-scoreboard.innerHTML="";
-classement.forEach((entry,idx)=>{
-const div=document.createElement("div");
-div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-if(idx===0) div.className="top1"; else if(idx===1) div.className="top2"; else if(idx===2) div.className="top3";
-scoreboard.appendChild(div);
-});
+  let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
+  scoreboard.innerHTML="";
+  classement.forEach((entry,idx)=>{
+    const div=document.createElement("div");
+    div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
+    if(idx===0) div.className="top1"; else if(idx===1) div.className="top2"; else if(idx===2) div.className="top3";
+    scoreboard.appendChild(div);
+  });
 }
 function restartQuiz(){resultDiv.style.display="none"; pseudoDiv.style.display="block";}
 
-// === MODE ADMIN ===
+// ===== ADMIN =====
 function adminLogin(){const id=prompt("Entrez identifiant admin :"); if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();} else alert("Identifiant incorrect");}
 function displayAdminBoard(){let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[]; adminScoreboard.innerHTML="";
-classement.forEach((entry,idx)=>{const div=document.createElement("div"); div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-const btn=document.createElement("button"); btn.innerText="Supprimer"; btn.className="delBtn";
-btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();};
-div.appendChild(btn); adminScoreboard.appendChild(div);});}
+  classement.forEach((entry,idx)=>{const div=document.createElement("div"); div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
+    const btn=document.createElement("button"); btn.innerText="Supprimer"; btn.className="delBtn";
+    btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();};
+    div.appendChild(btn); adminScoreboard.appendChild(div);});}
 function closeAdmin(){adminDiv.style.display="none"; pseudoDiv.style.display="block";}
 function resetClassement(){if(confirm("Réinitialiser le classement ?")){localStorage.removeItem("classementQuiz"); displayAdminBoard(); alert("Classement réinitialisé !");}}
 function addBonusQuestion(){const q=prompt("Nouvelle question :"); const r=prompt("Réponse correcte :"); if(q&&r){banqueQuestions.push({q:q,a:[r,"Option2","Option3","Option4"],r:r,e:"Question bonus"}); alert("Question bonus ajoutée !");}}
@@ -202,11 +212,3 @@ function toggleBonus(){bonusPoints=!bonusPoints; alert("Points bonus "+(bonusPoi
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
