@@ -6,22 +6,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;}
-main {background:white;padding:30px;border-radius:20px;width:90%;max-width:900px;box-shadow:0 20px 40px rgba(0,0,0,0.3);text-align:center;}
+main {background:white;padding:30px;border-radius:20px;width:90%;max-width:900px;box-shadow:0 20px 40px rgba(0,0,0,0.3);text-align:center;transition:all 0.3s;}
 h1 {margin-bottom:10px;color:#333;}
 button {display:block;margin:10px auto;padding:14px;width:80%;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s;}
-button:hover {opacity:0.9;transform:scale(1.02);}
-.correct {background:#4CAF50 !important;color:white;}
-.wrong {background:#F44336 !important;color:white;}
+button:hover {transform:scale(1.05);}
+.correct {background:#4CAF50 !important;color:white;animation:pop 0.3s;}
+.wrong {background:#F44336 !important;color:white;animation:shake 0.3s;}
+@keyframes shake {0%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);}100%{transform:translateX(0);}}
+@keyframes pop {0%{transform:scale(0.8);}100%{transform:scale(1);}}
 .adminBtn {background:#FF9800;color:white;}
 .adminBtn:hover {background:#F57C00;}
 .delBtn {background:#F44336;width:60%;margin:5px auto;}
 #info {margin-top:15px;font-style:italic;color:#555;min-height:40px;}
-#scoreboard, #adminScoreboard{text-align:left;margin-top:20px;max-height:250px;overflow-y:auto;}
-#scoreboard div.top {background:#FFEB3B;border-radius:8px;padding:5px; animation: glow 1s infinite alternate;}
+#scoreboard, #adminScoreboard{text-align:left;margin-top:20px;max-height:300px;overflow-y:auto;}
+#scoreboard div.top1{background:#FFD700;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
+#scoreboard div.top2{background:#C0C0C0;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
+#scoreboard div.top3{background:#CD7F32;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
 @keyframes glow {from {box-shadow:0 0 5px #FFD700;} to {box-shadow:0 0 15px #FF9800;}}
 input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:16px;}
 #pseudoDiv p {margin-bottom:10px;}
-#timer{font-weight:bold;margin-bottom:10px;color:#e91e63;font-size:20px;}
+#timerContainer{background:#ddd;width:80%;height:20px;border-radius:10px;margin:10px auto;overflow:hidden;}
+#timerBar{height:100%;width:100%;background:#e91e63;transition:width 1s linear,background 0.5s;}
 </style>
 </head>
 <body>
@@ -36,7 +41,7 @@ input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:
 </div>
 
 <div id="quizDiv" style="display:none;">
-<div id="timer">Temps : 15 s</div>
+<div id="timerContainer"><div id="timerBar"></div></div>
 <div class="question" id="question"></div>
 <div id="answers"></div>
 <p id="info"></p>
@@ -45,7 +50,7 @@ input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:
 <div id="resultDiv" style="display:none;">
 <h2>🎉 Quiz terminé ! 🎉</h2>
 <p id="scoreText"></p>
-<h3>Classement :</h3>
+<h3>Classement complet :</h3>
 <div id="scoreboard"></div>
 <button onclick="restartQuiz()">Rejouer</button>
 </div>
@@ -67,6 +72,8 @@ let bonusPoints=true;
 let chronoDuration=15;
 
 const banqueQuestions=[
+/* 50 questions ici */
+[
 {q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution commence en 1789."},
 {q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution."},
 {q:"Quel événement a lieu le 14 juillet 1789 ?", a:["Prise de la Bastille","Fête nationale","Exécution du roi","Code civil"], r:"Prise de la Bastille", e:"La prise de la Bastille est un symbole fort."},
@@ -86,14 +93,19 @@ const banqueQuestions=[
 {q:"Que sont les privilèges ?", a:["Avantages réservés","Lois","Impôts","Armes"], r:"Avantages réservés", e:"Réservés aux nobles et au clergé."},
 {q:"Quel slogan est célèbre ?", a:["Liberté Égalité Fraternité","Vive le roi","Paix et guerre","Force et loi"], r:"Liberté Égalité Fraternité", e:"Devise de la République."},
 {q:"Où se réunit le Tiers État ?", a:["Jeu de Paume","Versailles","Bastille","Louvre"], r:"Jeu de Paume", e:"Serment du Jeu de Paume."},
+{q:"Quel impôt est injuste ?", a:["La taille","TVA","Impôt sur le revenu","Dîme"], r:"La taille", e:"Payée presque uniquement par le Tiers État."},
 {q:"Que devient la France après ?", a:["République","Empire","Monarchie","Dictature"], r:"République", e:"Première République proclamée en 1792."},
 {q:"Qui crée la guillotine ?", a:["Dr. Guillotin","Robespierre","Napoléon","Louis XVI"], r:"Dr. Guillotin", e:"Pour rendre les exécutions plus humaines."},
+{q:"Comment s'appelle le procès du roi ?", a:["Procès de Louis XVI","Procès de Versailles","Procès de Paris","Procès du peuple"], r:"Procès de Louis XVI", e:"Jugé pour trahison."},
 {q:"Que font les sans-culottes ?", a:["Manifestations et révoltes","Gouvernent la France","Écrivent des lois","Se battent pour le roi"], r:"Manifestations et révoltes", e:"Participent aux journées révolutionnaires."},
 {q:"Qui était Danton ?", a:["Révolutionnaire","Roi","Général","Évêque"], r:"Révolutionnaire", e:"Leader révolutionnaire influent."},
+{q:"Qui était Marat ?", a:["Journaliste révolutionnaire","Roi","Soldat","Évêque"], r:"Journaliste révolutionnaire", e:"Écrit pour soutenir les sans-culottes."},
 {q:"Qui était Robespierre ?", a:["Chef révolutionnaire","Roi","Évêque","Écrivain"], r:"Chef révolutionnaire", e:"Dirige le Comité de salut public."},
 {q:"Quelle fête nationale apparaît ?", a:["14 juillet","1er janvier","25 décembre","14 août"], r:"14 juillet", e:"En souvenir de la prise de la Bastille."},
 {q:"Quel symbole royal disparaît ?", a:["La fleur de lys","Guillotine","Drapeau tricolore","Bonnet"], r:"La fleur de lys", e:"Symbole de la monarchie abandonné."},
 {q:"Qui est exécuté avec le roi ?", a:["Marie-Antoinette","Danton","Robespierre","Napoléon"], r:"Marie-Antoinette", e:"Guillotinée en 1793."},
+{q:"Quelle guerre éclate après ?", a:["Guerres révolutionnaires","Guerre de 100 ans","Guerre de 7 ans","Guerre civile"], r:"Guerres révolutionnaires", e:"France se défend contre les monarchies européennes."},
+{q:"Qui vote pour la République ?", a:["La Convention","Le peuple seul","Les nobles","Napoléon"], r:"La Convention", e:"Vote en septembre 1792."},
 {q:"Qui est exécuté pendant la Terreur ?", a:["Beaucoup de nobles","Le peuple","Le roi","Napoléon"], r:"Beaucoup de nobles", e:"Pour protéger la Révolution."},
 {q:"Qui dirige après la Terreur ?", a:["Le Directoire","Robespierre","Le roi","Napoléon"], r:"Le Directoire", e:"Gouverne de 1795 à 1799."},
 {q:"Qui met fin à la Révolution ?", a:["Napoléon","Robespierre","Louis XVI","Danton"], r:"Napoléon", e:"Coup d'État du 18 Brumaire 1799."},
@@ -111,8 +123,6 @@ const banqueQuestions=[
 {q:"Qui vote la mort du roi ?", a:["La Convention","Le peuple","Les nobles","Napoléon"], r:"La Convention", e:"Vote en janvier 1793."}
 ];
 
-/* VARIABLES ET FONCTIONS DE QUIZ (shuffle, startQuiz, showQuestion, timer, checkAnswer, showResult, classement) */
-
 let questionsPartie=[], i=0, score=0, pseudo="", timerValue=chronoDuration, timerInterval;
 const pseudoInput=document.getElementById("pseudo");
 const pseudoDiv=document.getElementById("pseudoDiv");
@@ -125,12 +135,11 @@ const infoEl=document.getElementById("info");
 const scoreText=document.getElementById("scoreText");
 const scoreboard=document.getElementById("scoreboard");
 const adminScoreboard=document.getElementById("adminScoreboard");
-const timerEl=document.getElementById("timer");
+const timerBar=document.getElementById("timerBar");
 
 function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
 function startQuiz(){
-pseudo=pseudoInput.value.trim()||"Anonyme";
-pseudoDiv.style.display="none"; quizDiv.style.display="block";
+pseudo=pseudoInput.value.trim()||"Anonyme"; pseudoDiv.style.display="none"; quizDiv.style.display="block";
 i=0; score=0;
 questionsPartie=shuffle([...banqueQuestions]).slice(0,10);
 showQuestion();
@@ -139,62 +148,52 @@ function showQuestion(){
 if(i>=questionsPartie.length){showResult(); return;}
 const q=questionsPartie[i];
 questionEl.innerHTML=`<h2>${i+1}. ${q.q}</h2>`;
-infoEl.innerHTML="";
-answersEl.innerHTML="";
+infoEl.innerHTML=""; answersEl.innerHTML="";
 shuffle([...q.a]).forEach(rep=>{
-const b=document.createElement("button");
-b.innerText=rep; b.onclick=()=>checkAnswer(rep,q);
-answersEl.appendChild(b);
+const b=document.createElement("button"); b.innerText=rep; b.onclick=()=>checkAnswer(rep,q); answersEl.appendChild(b);
 });
 startTimer();
 }
-function startTimer(){clearInterval(timerInterval); timerValue=chronoDuration;
-timerEl.innerText=`Temps : ${timerValue} s`;
-timerInterval=setInterval(()=>{
-timerValue--; timerEl.innerText=`Temps : ${timerValue} s`;
-if(timerValue<=0){clearInterval(timerInterval); checkAnswer("",questionsPartie[i]);}},1000);}
+function startTimer(){clearInterval(timerInterval); timerValue=chronoDuration; updateTimerBar();
+timerInterval=setInterval(()=>{timerValue--; updateTimerBar(); if(timerValue<=0){clearInterval(timerInterval); checkAnswer("",questionsPartie[i]);}},1000);}
+function updateTimerBar(){
+let perc=Math.max(timerValue/chronoDuration*100,0);
+timerBar.style.width=perc+"%"; timerBar.style.background=perc>50?"#4caf50":perc>20?"#ffeb3b":"#f44336";
+}
 function checkAnswer(rep,q){
 clearInterval(timerInterval); [...answersEl.children].forEach(b=>b.disabled=true);
-const btn=[...answersEl.children].find(b=>b.innerText===rep);
-let points=0;
+const btn=[...answersEl.children].find(b=>b.innerText===rep); let points=0;
 if(rep===q.r){if(btn) btn.classList.add("correct"); points=bonusPoints? 10+timerValue:10; score+=points;}
 else{if(btn) btn.classList.add("wrong");}
-infoEl.innerHTML=`${q.e} (+${points} pts)`; i++; setTimeout(showQuestion,1500);}
+infoEl.innerHTML=`${q.e} (+${points} pts)`; i++; setTimeout(showQuestion,1500);
+}
 function showResult(){
 quizDiv.style.display="none"; resultDiv.style.display="block";
 scoreText.innerHTML=`${pseudo}, vous avez ${score} points !`;
 let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
 classement.push({pseudo,score,date:new Date().toLocaleString()});
-classement.sort((a,b)=>b.score-a.score);
-localStorage.setItem("classementQuiz",JSON.stringify(classement));
-displayScoreboard();
+classement.sort((a,b)=>b.score-a.score); localStorage.setItem("classementQuiz",JSON.stringify(classement));
+displayScoreboard(); // toujours visible pour tous
 }
 function displayScoreboard(){
 let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
 scoreboard.innerHTML="";
-classement.slice(0,10).forEach((entry,idx)=>{
-const div=document.createElement("div");
-div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-if(idx===0) div.className="top";
-scoreboard.appendChild(div);
-});}
-function restartQuiz(){resultDiv.style.display="none"; pseudoDiv.style.display="block";}
-
-/* MODE ADMIN */
-function adminLogin(){
-const id=prompt("Entrez identifiant admin :");
-if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();}
-else alert("Identifiant incorrect");}
-function displayAdminBoard(){
-let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
-adminScoreboard.innerHTML="";
 classement.forEach((entry,idx)=>{
 const div=document.createElement("div");
 div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
+if(idx===0) div.className="top1"; else if(idx===1) div.className="top2"; else if(idx===2) div.className="top3";
+scoreboard.appendChild(div);
+});
+}
+function restartQuiz(){resultDiv.style.display="none"; pseudoDiv.style.display="block";}
+
+// === MODE ADMIN ===
+function adminLogin(){const id=prompt("Entrez identifiant admin :"); if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();} else alert("Identifiant incorrect");}
+function displayAdminBoard(){let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[]; adminScoreboard.innerHTML="";
+classement.forEach((entry,idx)=>{const div=document.createElement("div"); div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
 const btn=document.createElement("button"); btn.innerText="Supprimer"; btn.className="delBtn";
-btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();}
-div.appendChild(btn); adminScoreboard.appendChild(div);
-});}
+btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();};
+div.appendChild(btn); adminScoreboard.appendChild(div);});}
 function closeAdmin(){adminDiv.style.display="none"; pseudoDiv.style.display="block";}
 function resetClassement(){if(confirm("Réinitialiser le classement ?")){localStorage.removeItem("classementQuiz"); displayAdminBoard(); alert("Classement réinitialisé !");}}
 function addBonusQuestion(){const q=prompt("Nouvelle question :"); const r=prompt("Réponse correcte :"); if(q&&r){banqueQuestions.push({q:q,a:[r,"Option2","Option3","Option4"],r:r,e:"Question bonus"}); alert("Question bonus ajoutée !");}}
@@ -203,6 +202,8 @@ function toggleBonus(){bonusPoints=!bonusPoints; alert("Points bonus "+(bonusPoi
 </script>
 </body>
 </html>
+
+
 
 
 
