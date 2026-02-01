@@ -5,11 +5,10 @@
 <title>Quiz Révolution Française – 4ème</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* ===== Reset et layout ===== */
-body {font-family:'Poppins',sans-serif;margin:0;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:center;min-height:100vh;}
-main {background:white;padding:20px;border-radius:20px;width:95%;max-width:900px;box-shadow:0 15px 30px rgba(0,0,0,0.25);text-align:center;transition:all 0.3s;}
+body {font-family:'Poppins',sans-serif;margin:0;padding:0;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}
+main {background:white;padding:20px;border-radius:20px;width:95%;max-width:900px;box-shadow:0 15px 30px rgba(0,0,0,0.25);text-align:center;margin:20px;}
 h1 {margin-bottom:10px;color:#333;}
-button {display:block;margin:10px auto;padding:12px;width:95%;max-width:400px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s;}
+button {display:block;margin:10px auto;padding:12px;width:95%;max-width:400px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s;box-sizing:border-box;}
 button:hover {transform:scale(1.05);}
 .correct {background:#4CAF50 !important;color:white;animation:pop 0.3s;}
 .wrong {background:#F44336 !important;color:white;animation:shake 0.3s;}
@@ -19,13 +18,13 @@ button:hover {transform:scale(1.05);}
 .adminBtn:hover {background:#F57C00;}
 .delBtn {background:#F44336;width:60%;margin:5px auto;}
 #info {margin-top:10px;font-style:italic;color:#555;min-height:40px;}
-#scoreboard, #adminScoreboard{text-align:left;margin-top:15px;max-height:300px;overflow-y:auto;}
+#scoreboard, #adminScoreboard{text-align:left;margin-top:15px;max-height:300px;overflow-y:auto;padding:0 5px;}
 #scoreboard div.top1{background:#FFD700;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
 #scoreboard div.top2{background:#C0C0C0;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
 #scoreboard div.top3{background:#CD7F32;border-radius:8px;padding:5px; animation:glow 1s infinite alternate;}
 @keyframes glow {from {box-shadow:0 0 5px #FFD700;} to {box-shadow:0 0 15px #FF9800;}}
-input {padding:10px;border-radius:8px;border:1px solid #ccc;width:80%;max-width:300px;font-size:16px;}
-#pseudoDiv p {margin-bottom:10px;}
+input[type="text"] {padding:10px;border-radius:8px;border:1px solid #ccc;width:80%;max-width:300px;font-size:16px;box-sizing:border-box;}
+#pseudoDiv p, #adminDiv p {margin-bottom:10px;}
 #timerContainer{background:#ddd;width:95%;height:20px;border-radius:10px;margin:10px auto;overflow:hidden;}
 #timerBar{height:100%;width:100%;background:#e91e63;transition:width 1s linear,background 0.5s;}
 @media screen and (max-width:480px){
@@ -45,7 +44,9 @@ input {padding:10px;border-radius:8px;border:1px solid #ccc;width:80%;max-width:
 <p>Entrez votre pseudo pour commencer :</p>
 <input type="text" id="pseudo" placeholder="Pseudo" />
 <button onclick="startQuiz()">Commencer</button>
-<button class="adminBtn" onclick="adminLogin()">Mode Admin</button>
+<p>Mode admin :</p>
+<input type="text" id="adminId" placeholder="Identifiant admin" />
+<button class="adminBtn" onclick="adminLogin()">Se connecter admin</button>
 </div>
 
 <div id="quizDiv" style="display:none;">
@@ -65,6 +66,7 @@ input {padding:10px;border-radius:8px;border:1px solid #ccc;width:80%;max-width:
 
 <div id="adminDiv" style="display:none;">
 <h2>Mode Admin</h2>
+<p>Actions disponibles :</p>
 <button onclick="displayAdminBoard()">Voir classement et supprimer pseudos</button>
 <button onclick="resetClassement()">Réinitialiser classement</button>
 <button onclick="addBonusQuestion()">Ajouter une question bonus</button>
@@ -80,7 +82,7 @@ const MASTER_ID="@timeolol";
 let bonusPoints=true;
 let chronoDuration=15;
 
-// 50 questions pour 4ème
+// 50 questions
 const banqueQuestions=[
 {q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution commence en 1789."},
 {q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution."},
@@ -133,6 +135,7 @@ const banqueQuestions=[
 
 let questionsPartie=[], i=0, score=0, pseudo="", timerValue=chronoDuration, timerInterval;
 const pseudoInput=document.getElementById("pseudo");
+const adminInput=document.getElementById("adminId");
 const pseudoDiv=document.getElementById("pseudoDiv");
 const quizDiv=document.getElementById("quizDiv");
 const resultDiv=document.getElementById("resultDiv");
@@ -198,12 +201,21 @@ function displayScoreboard(){
 function restartQuiz(){resultDiv.style.display="none"; pseudoDiv.style.display="block";}
 
 // ===== ADMIN =====
-function adminLogin(){const id=prompt("Entrez identifiant admin :"); if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();} else alert("Identifiant incorrect");}
-function displayAdminBoard(){let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[]; adminScoreboard.innerHTML="";
-  classement.forEach((entry,idx)=>{const div=document.createElement("div"); div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
+function adminLogin(){
+  const id=adminInput.value.trim();
+  if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();}
+  else alert("Identifiant incorrect");
+}
+function displayAdminBoard(){
+  let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[]; adminScoreboard.innerHTML="";
+  classement.forEach((entry,idx)=>{
+    const div=document.createElement("div"); 
+    div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
     const btn=document.createElement("button"); btn.innerText="Supprimer"; btn.className="delBtn";
     btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();};
-    div.appendChild(btn); adminScoreboard.appendChild(div);});}
+    div.appendChild(btn); adminScoreboard.appendChild(div);
+  });
+}
 function closeAdmin(){adminDiv.style.display="none"; pseudoDiv.style.display="block";}
 function resetClassement(){if(confirm("Réinitialiser le classement ?")){localStorage.removeItem("classementQuiz"); displayAdminBoard(); alert("Classement réinitialisé !");}}
 function addBonusQuestion(){const q=prompt("Nouvelle question :"); const r=prompt("Réponse correcte :"); if(q&&r){banqueQuestions.push({q:q,a:[r,"Option2","Option3","Option4"],r:r,e:"Question bonus"}); alert("Question bonus ajoutée !");}}
@@ -212,3 +224,5 @@ function toggleBonus(){bonusPoints=!bonusPoints; alert("Points bonus "+(bonusPoi
 </script>
 </body>
 </html>
+
+
