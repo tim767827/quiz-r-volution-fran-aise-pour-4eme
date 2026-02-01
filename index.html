@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Révolution Française</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f6d365, #fda085);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #quiz-container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      max-width: 700px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    h2 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .progress-bar {
+      height: 20px;
+      background: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #4CAF50, #8BC34A);
+      transition: width 0.3s;
+    }
+    .question {
+      font-size: 20px;
+      margin: 20px 0;
+    }
+    .answers button {
+      display: block;
+      margin: 10px auto;
+      padding: 12px 20px;
+      width: 80%;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      border: none;
+      background: #2196F3;
+      color: white;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .answers button:hover {
+      transform: scale(1.05);
+      background: #1E88E5;
+    }
+    .correct {
+      background-color: #4CAF50 !important;
+      color: white;
+      transform: scale(1.05);
+    }
+    .wrong {
+      background-color: #f44336 !important;
+      color: white;
+      transform: scale(1.05);
+    }
+    #timer {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    #explanation {
+      margin-top: 10px;
+      font-style: italic;
+      color: #555;
+    }
+    #next-btn {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      background-color: #FF9800;
+      color: white;
+      transition: transform 0.2s, background 0.2s;
+    }
+    #next-btn:hover {
+      background-color: #FB8C00;
+      transform: scale(1.05);
+    }
+    #score {
+      font-size: 22px;
+      font-weight: bold;
+      color: #673AB7;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="quiz-container">
+    <h2>Quiz Révolution Française</h2>
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div id="timer">Temps restant: <span id="time">15</span>s</div>
+    <div class="question" id="question"></div>
+    <div class="answers" id="answers"></div>
+    <div id="explanation"></div>
+    <button id="next-btn" style="display:none;">Question suivante</button>
+    <div id="score"></div>
+  </div>
+
+  <script>
+    const quizData = [
+      {question: "En quelle année a commencé la Révolution française ?", options: ["1789", "1776", "1799", "1804"], answer: "1789", explanation: "La Révolution a commencé en 1789 avec la convocation des États généraux."},
+      {question: "Quel événement marque le début symbolique de la Révolution ?", options: ["Prise de la Bastille", "Fête de la Fédération", "Exécution de Louis XVI", "Serment du Jeu de Paume"], answer: "Prise de la Bastille", explanation: "La prise de la Bastille le 14 juillet 1789 est le symbole du début de la Révolution."},
+      {question: "Qui était roi de France au début de la Révolution ?", options: ["Louis XVI", "Louis XIV", "Napoléon", "Charles X"], answer: "Louis XVI", explanation: "Louis XVI était le roi de France lors du déclenchement de la Révolution."},
+      {question: "Comment s'appelait l'assemblée qui représentait le peuple ?", options: ["États généraux", "Parlement", "Sénat", "Convention"], answer: "États généraux", explanation: "Les États généraux représentaient le clergé, la noblesse et le Tiers état."},
+      {question: "Quelle déclaration célèbre a été adoptée en 1789 ?", options: ["Déclaration des droits de l'homme et du citoyen", "Code civil", "Constitution de 1791", "Code Napoléon"], answer: "Déclaration des droits de l'homme et du citoyen", explanation: "Elle garantit les libertés fondamentales du peuple."},
+      {question: "Qui a été exécuté à la guillotine en 1793 ?", options: ["Louis XVI", "Robespierre", "Napoléon", "Danton"], answer: "Louis XVI", explanation: "Louis XVI a été exécuté le 21 janvier 1793 à la guillotine."},
+      {question: "Qu'est-ce que la Terreur ?", options: ["Période de répression révolutionnaire", "Fête nationale", "Nom d'un journal", "Une loi sur les impôts"], answer: "Période de répression révolutionnaire", explanation: "La Terreur est une période de violences pour protéger la Révolution."},
+      {question: "Quel symbole est associé à la Révolution ?", options: ["La cocarde tricolore", "Le drapeau blanc", "La fleur de lys", "La croix"], answer: "La cocarde tricolore", explanation: "La cocarde tricolore bleu-blanc-rouge symbolise la Révolution et la République."},
+      {question: "Quel document limitait le pouvoir du roi ?", options: ["Constitution de 1791", "Déclaration de 1789", "Code Napoléon", "Edit royal"], answer: "Constitution de 1791", explanation: "La Constitution de 1791 limite le pouvoir du roi et instaure une monarchie constitutionnelle."},
+      {question: "Quel était le cri de ralliement des révolutionnaires ?", options: ["Liberté, Égalité, Fraternité", "Vive le roi", "Gloire à Napoléon", "Paix et justice"], answer: "Liberté, Égalité, Fraternité", explanation: "Cette devise symbolise les valeurs principales de la Révolution française."}
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 15;
+
+    const questionEl = document.getElementById('question');
+    const answersEl = document.getElementById('answers');
+    const nextBtn = document.getElementById('next-btn');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const explanationEl = document.getElementById('explanation');
+    const progressEl = document.getElementById('progress');
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      showQuestion();
+      updateProgress();
+    }
+
+    function showQuestion() {
+      const q = quizData[currentQuestion];
+      questionEl.textContent = `${currentQuestion + 1}. ${q.question}`;
+      answersEl.innerHTML = '';
+      explanationEl.textContent = '';
+      nextBtn.style.display = 'none';
+      timeLeft = 15;
+      timeEl.textContent = timeLeft;
+
+      const shuffledOptions = shuffle([...q.options]); // Mélange les réponses
+
+      shuffledOptions.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        btn.addEventListener('click', () => selectAnswer(option, btn));
+        answersEl.appendChild(btn);
+      });
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if(timeLeft <= 0) {
+          clearInterval(timer);
+          showCorrectAnswer(null);
+        }
+      }, 1000);
+    }
+
+    function selectAnswer(selected, btn) {
+      clearInterval(timer);
+      showCorrectAnswer(selected);
+    }
+
+    function showCorrectAnswer(selected) {
+      const q = quizData[currentQuestion];
+      Array.from(answersEl.children).forEach(button => {
+        if(button.textContent === q.answer) button.classList.add('correct');
+        if(selected && button.textContent === selected && selected !== q.answer) button.classList.add('wrong');
+        button.disabled = true;
+      });
+
+      if(selected === q.answer) {
+        score += Math.ceil(timeLeft / 5); // Points bonus selon rapidité
+      }
+
+      explanationEl.textContent = `Explication: ${q.explanation}`;
+      nextBtn.style.display = 'block';
+      updateProgress();
+    }
+
+    nextBtn.addEventListener('click', () => {
+      currentQuestion++;
+      if(currentQuestion < quizData.length) {
+        showQuestion();
+      } else {
+        showScore();
+      }
+    });
+
+    function showScore() {
+      questionEl.textContent = '🎉 Quiz terminé ! 🎉';
+      answersEl.innerHTML = '';
+      explanationEl.textContent = '';
+      nextBtn.style.display = 'none';
+      progressEl.style.width = '100%';
+      scoreEl.textContent = `Votre score: ${score} / ${quizData.length * 3} points possibles`;
+    }
+
+    function updateProgress() {
+      const percent = ((currentQuestion) / quizData.length) * 100;
+      progressEl.style.width = percent + '%';
+    }
+
+    startQuiz();
+  </script>
+</body>
+</html>
+
+
+
