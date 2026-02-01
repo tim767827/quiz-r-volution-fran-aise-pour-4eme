@@ -5,22 +5,23 @@
 <title>Quiz Révolution Française – 4ème</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:center;height:100vh;margin:0;overflow:hidden;}
-main {background:white;padding:30px;border-radius:20px;width:90%;max-width:800px;box-shadow:0 20px 40px rgba(0,0,0,0.3);text-align:center;transition:all 0.3s ease;}
+body {font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;}
+main {background:white;padding:30px;border-radius:20px;width:90%;max-width:900px;box-shadow:0 20px 40px rgba(0,0,0,0.3);text-align:center;}
 h1 {margin-bottom:10px;color:#333;}
-button {display:block;margin:10px auto;padding:14px;width:80%;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s ease;}
+button {display:block;margin:10px auto;padding:14px;width:80%;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s;}
 button:hover {opacity:0.9;transform:scale(1.02);}
 .correct {background:#4CAF50 !important;color:white;}
 .wrong {background:#F44336 !important;color:white;}
 .adminBtn {background:#FF9800;color:white;}
 .adminBtn:hover {background:#F57C00;}
 .delBtn {background:#F44336;width:60%;margin:5px auto;}
-#info {margin-top:15px;font-style:italic;color:#555;min-height:30px;}
+#info {margin-top:15px;font-style:italic;color:#555;min-height:40px;}
 #scoreboard, #adminScoreboard{text-align:left;margin-top:20px;max-height:250px;overflow-y:auto;}
-#scoreboard div.top {background:#FFEB3B;border-radius:8px;padding:5px;}
+#scoreboard div.top {background:#FFEB3B;border-radius:8px;padding:5px; animation: glow 1s infinite alternate;}
+@keyframes glow {from {box-shadow:0 0 5px #FFD700;} to {box-shadow:0 0 15px #FF9800;}}
 input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:16px;}
 #pseudoDiv p {margin-bottom:10px;}
-#timer{font-weight:bold;margin-bottom:10px;color:#e91e63;}
+#timer{font-weight:bold;margin-bottom:10px;color:#e91e63;font-size:20px;}
 </style>
 </head>
 <body>
@@ -28,39 +29,43 @@ input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:
 <h1>Quiz Révolution Française – 4ème</h1>
 
 <div id="pseudoDiv">
-  <p>Entrez votre pseudo pour commencer :</p>
-  <input type="text" id="pseudo" placeholder="Pseudo" />
-  <button onclick="startQuiz()">Commencer</button>
-  <button class="adminBtn" onclick="adminLogin()">Mode Admin</button>
+<p>Entrez votre pseudo pour commencer :</p>
+<input type="text" id="pseudo" placeholder="Pseudo" />
+<button onclick="startQuiz()">Commencer</button>
+<button class="adminBtn" onclick="adminLogin()">Mode Admin</button>
 </div>
 
 <div id="quizDiv" style="display:none;">
-  <div id="timer">Temps : 15 s</div>
-  <div id="progress"></div>
-  <div class="question" id="question"></div>
-  <div id="answers"></div>
-  <p id="info"></p>
+<div id="timer">Temps : 15 s</div>
+<div class="question" id="question"></div>
+<div id="answers"></div>
+<p id="info"></p>
 </div>
 
 <div id="resultDiv" style="display:none;">
-  <h2>🎉 Quiz terminé ! 🎉</h2>
-  <p id="scoreText"></p>
-  <h3>Classement :</h3>
-  <div id="scoreboard"></div>
-  <button onclick="restartQuiz()">Rejouer</button>
+<h2>🎉 Quiz terminé ! 🎉</h2>
+<p id="scoreText"></p>
+<h3>Classement :</h3>
+<div id="scoreboard"></div>
+<button onclick="restartQuiz()">Rejouer</button>
 </div>
 
 <div id="adminDiv" style="display:none;">
-  <h2>Mode Admin</h2>
-  <p>Supprime les pseudos offensants :</p>
-  <div id="adminScoreboard"></div>
-  <button onclick="closeAdmin()">Fermer</button>
+<h2>Mode Admin</h2>
+<button onclick="displayAdminBoard()">Voir classement et supprimer pseudos</button>
+<button onclick="resetClassement()">Réinitialiser classement</button>
+<button onclick="addBonusQuestion()">Ajouter une question bonus</button>
+<button onclick="changeTimer()">Changer durée chrono</button>
+<button onclick="toggleBonus()">Activer/désactiver points bonus</button>
+<div id="adminScoreboard" style="margin-top:20px;"></div>
+<button onclick="closeAdmin()">Fermer admin</button>
 </div>
 
 <script>
-const MASTER_ID="@timlol";
+const MASTER_ID="@timeolol";
+let bonusPoints=true;
+let chronoDuration=15;
 
-/* 50 QUESTIONS */
 const banqueQuestions=[
 {q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution commence en 1789."},
 {q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution."},
@@ -111,8 +116,9 @@ const banqueQuestions=[
 {q:"Qui vote la mort du roi ?", a:["La Convention","Le peuple","Les nobles","Napoléon"], r:"La Convention", e:"Vote en janvier 1793."}
 ];
 
-/* VARIABLES */
-let questionsPartie=[], i=0, score=0, pseudo="", timerValue=15, timerInterval;
+/* VARIABLES ET FONCTIONS DE QUIZ (shuffle, startQuiz, showQuestion, timer, checkAnswer, showResult, classement) */
+
+let questionsPartie=[], i=0, score=0, pseudo="", timerValue=chronoDuration, timerInterval;
 const pseudoInput=document.getElementById("pseudo");
 const pseudoDiv=document.getElementById("pseudoDiv");
 const quizDiv=document.getElementById("quizDiv");
@@ -126,20 +132,14 @@ const scoreboard=document.getElementById("scoreboard");
 const adminScoreboard=document.getElementById("adminScoreboard");
 const timerEl=document.getElementById("timer");
 
-/* SHUFFLE */
 function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
-
-/* START QUIZ */
 function startQuiz(){
 pseudo=pseudoInput.value.trim()||"Anonyme";
-pseudoDiv.style.display="none";
-quizDiv.style.display="block";
+pseudoDiv.style.display="none"; quizDiv.style.display="block";
 i=0; score=0;
 questionsPartie=shuffle([...banqueQuestions]).slice(0,10);
 showQuestion();
 }
-
-/* SHOW QUESTION */
 function showQuestion(){
 if(i>=questionsPartie.length){showResult(); return;}
 const q=questionsPartie[i];
@@ -148,50 +148,25 @@ infoEl.innerHTML="";
 answersEl.innerHTML="";
 shuffle([...q.a]).forEach(rep=>{
 const b=document.createElement("button");
-b.innerText=rep;
-b.onclick=()=>checkAnswer(rep,q);
+b.innerText=rep; b.onclick=()=>checkAnswer(rep,q);
 answersEl.appendChild(b);
 });
 startTimer();
 }
-
-/* TIMER */
-function startTimer(){
-clearInterval(timerInterval);
-timerValue=15;
+function startTimer(){clearInterval(timerInterval); timerValue=chronoDuration;
 timerEl.innerText=`Temps : ${timerValue} s`;
 timerInterval=setInterval(()=>{
-timerValue--;
-timerEl.innerText=`Temps : ${timerValue} s`;
-if(timerValue<=0){
-clearInterval(timerInterval);
-checkAnswer("",questionsPartie[i]);
-}
-},1000);
-}
-
-/* CHECK ANSWER */
+timerValue--; timerEl.innerText=`Temps : ${timerValue} s`;
+if(timerValue<=0){clearInterval(timerInterval); checkAnswer("",questionsPartie[i]);}},1000);}
 function checkAnswer(rep,q){
-clearInterval(timerInterval);
-[...answersEl.children].forEach(b=>b.disabled=true);
+clearInterval(timerInterval); [...answersEl.children].forEach(b=>b.disabled=true);
 const btn=[...answersEl.children].find(b=>b.innerText===rep);
 let points=0;
-if(rep===q.r){
-if(btn) btn.classList.add("correct");
-points=10+timerValue;
-score+=points;
-} else{
-if(btn) btn.classList.add("wrong");
-}
-infoEl.innerHTML=`${q.e} (+${points} pts)`;
-i++;
-setTimeout(showQuestion,1000);
-}
-
-/* SHOW RESULT */
+if(rep===q.r){if(btn) btn.classList.add("correct"); points=bonusPoints? 10+timerValue:10; score+=points;}
+else{if(btn) btn.classList.add("wrong");}
+infoEl.innerHTML=`${q.e} (+${points} pts)`; i++; setTimeout(showQuestion,1500);}
 function showResult(){
-quizDiv.style.display="none";
-resultDiv.style.display="block";
+quizDiv.style.display="none"; resultDiv.style.display="block";
 scoreText.innerHTML=`${pseudo}, vous avez ${score} points !`;
 let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
 classement.push({pseudo,score,date:new Date().toLocaleString()});
@@ -199,8 +174,6 @@ classement.sort((a,b)=>b.score-a.score);
 localStorage.setItem("classementQuiz",JSON.stringify(classement));
 displayScoreboard();
 }
-
-/* DISPLAY SCOREBOARD */
 function displayScoreboard(){
 let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
 scoreboard.innerHTML="";
@@ -209,40 +182,34 @@ const div=document.createElement("div");
 div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
 if(idx===0) div.className="top";
 scoreboard.appendChild(div);
-});
-}
-
-/* RESTART QUIZ */
+});}
 function restartQuiz(){resultDiv.style.display="none"; pseudoDiv.style.display="block";}
 
-/* ADMIN */
+/* MODE ADMIN */
 function adminLogin(){
-const id=prompt("Entrez l'identifiant admin :");
+const id=prompt("Entrez identifiant admin :");
 if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();}
-else alert("Identifiant incorrect !");
-}
+else alert("Identifiant incorrect");}
 function displayAdminBoard(){
 let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
 adminScoreboard.innerHTML="";
 classement.forEach((entry,idx)=>{
 const div=document.createElement("div");
 div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
-const btn=document.createElement("button");
-btn.innerText="Supprimer";
-btn.className="delBtn";
-btn.onclick=()=>{
-classement.splice(idx,1);
-localStorage.setItem("classementQuiz",JSON.stringify(classement));
-displayAdminBoard();
-};
-div.appendChild(btn);
-adminScoreboard.appendChild(div);
-});
-}
+const btn=document.createElement("button"); btn.innerText="Supprimer"; btn.className="delBtn";
+btn.onclick=()=>{classement.splice(idx,1); localStorage.setItem("classementQuiz",JSON.stringify(classement)); displayAdminBoard();}
+div.appendChild(btn); adminScoreboard.appendChild(div);
+});}
 function closeAdmin(){adminDiv.style.display="none"; pseudoDiv.style.display="block";}
+function resetClassement(){if(confirm("Réinitialiser le classement ?")){localStorage.removeItem("classementQuiz"); displayAdminBoard(); alert("Classement réinitialisé !");}}
+function addBonusQuestion(){const q=prompt("Nouvelle question :"); const r=prompt("Réponse correcte :"); if(q&&r){banqueQuestions.push({q:q,a:[r,"Option2","Option3","Option4"],r:r,e:"Question bonus"}); alert("Question bonus ajoutée !");}}
+function changeTimer(){const t=parseInt(prompt("Nouvelle durée chrono en secondes :",chronoDuration)); if(!isNaN(t)&&t>0){chronoDuration=t; alert("Durée chrono changée !");}}
+function toggleBonus(){bonusPoints=!bonusPoints; alert("Points bonus "+(bonusPoints?"activés":"désactivés")+" !");}
 </script>
 </body>
 </html>
+
+
 
 
 
