@@ -5,24 +5,31 @@
 <title>Quiz Révolution Française – 4ème</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {font-family: Arial,sans-serif; background: linear-gradient(135deg,#f6d365,#fda085); display:flex; justify-content:center; align-items:center; height:100vh; margin:0;}
-main {background:white; padding:30px; border-radius:15px; max-width:800px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,0.3); text-align:center;}
-h1 {margin-bottom:10px;}
-button {display:block; margin:10px auto; padding:12px; width:80%; border-radius:10px; border:none; cursor:pointer; font-size:16px; background:#2196F3; color:white;}
-button:hover {background:#1976D2;}
-.correct {background:#4CAF50 !important;}
-.wrong {background:#F44336 !important;}
-#info {margin-top:10px; font-style:italic;}
-#scoreboard {text-align:left; margin-top:20px;}
+body {font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#FFDEE9,#B5FFFC);display:flex;justify-content:center;align-items:center;height:100vh;margin:0;overflow:hidden;}
+main {background:white;padding:30px;border-radius:20px;width:90%;max-width:800px;box-shadow:0 20px 40px rgba(0,0,0,0.3);text-align:center;transition:all 0.3s ease;}
+h1 {margin-bottom:10px;color:#333;}
+button {display:block;margin:10px auto;padding:14px;width:80%;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:bold;transition:0.2s ease;}
+button:hover {opacity:0.9;transform:scale(1.02);}
+.correct {background:#4CAF50 !important;color:white;}
+.wrong {background:#F44336 !important;color:white;}
+.adminBtn {background:#FF9800;color:white;}
+.adminBtn:hover {background:#F57C00;}
+.delBtn {background:#F44336;width:60%;margin:5px auto;}
+#info {margin-top:15px;font-style:italic;color:#555;min-height:30px;}
+#scoreboard, #adminScoreboard{text-align:left;margin-top:20px;max-height:250px;overflow-y:auto;}
+input {padding:10px;border-radius:8px;border:1px solid #ccc;width:60%;font-size:16px;}
+#pseudoDiv p {margin-bottom:10px;}
 </style>
 </head>
 <body>
 <main>
 <h1>Quiz Révolution Française – 4ème</h1>
+
 <div id="pseudoDiv">
   <p>Entrez votre pseudo pour commencer :</p>
   <input type="text" id="pseudo" placeholder="Pseudo" />
   <button onclick="startQuiz()">Commencer</button>
+  <button class="adminBtn" onclick="adminLogin()">Mode Admin</button>
 </div>
 
 <div id="quizDiv" style="display:none;">
@@ -40,133 +47,171 @@ button:hover {background:#1976D2;}
   <button onclick="restartQuiz()">Rejouer</button>
 </div>
 
+<div id="adminDiv" style="display:none;">
+  <h2>Mode Admin</h2>
+  <p>Supprime les pseudos offensants :</p>
+  <div id="adminScoreboard"></div>
+  <button onclick="closeAdmin()">Fermer</button>
+</div>
+
 <script>
+/* ADMIN */
+const MASTER_ID = "@timlol";
+
 /* BANQUE DE 50 QUESTIONS */
 const banqueQuestions = [
-  {q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution commence en 1789."},
-  {q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution."},
-  {q:"Quel événement a lieu le 14 juillet 1789 ?", a:["Prise de la Bastille","Fête nationale","Exécution du roi","Code civil"], r:"Prise de la Bastille", e:"La prise de la Bastille est un symbole fort."},
-  {q:"Comment s'appelle la prison détruite en 1789 ?", a:["La Bastille","Le Louvre","Versailles","La Conciergerie"], r:"La Bastille", e:"La Bastille était une prison royale."},
-  {q:"Quelle assemblée représente le peuple ?", a:["États généraux","Sénat","Parlement","Conseil royal"], r:"États généraux", e:"Les États généraux regroupent les trois ordres."},
-  {q:"Quel document proclame les libertés ?", a:["Déclaration des droits de l'homme","Code civil","Edit royal","Constitution de 1815"], r:"Déclaration des droits de l'homme", e:"Adoptée en 1789."},
-  {q:"Quel ordre payait le plus d'impôts ?", a:["Le Tiers État","La noblesse","Le clergé","Le roi"], r:"Le Tiers État", e:"Le Tiers État supportait la majorité des impôts."},
-  {q:"Comment appelle-t-on les révolutionnaires du peuple ?", a:["Sans-culottes","Nobles","Clercs","Royalistes"], r:"Sans-culottes", e:"Ils représentent le peuple des villes."},
-  {q:"Quel roi est exécuté ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Il est guillotiné en 1793."},
-  {q:"Quel est le symbole de la République ?", a:["Drapeau tricolore","Fleur de lys","Couronne","Croix"], r:"Drapeau tricolore", e:"Bleu, blanc, rouge."},
-  {q:"Qui dirige pendant la Terreur ?", a:["Robespierre","Napoléon","Louis XVI","Danton"], r:"Robespierre", e:"Il dirige le Comité de salut public."},
-  {q:"Comment s'appelle la période violente ?", a:["La Terreur","La Paix","La Monarchie","L'Empire"], r:"La Terreur", e:"Beaucoup d'exécutions."},
-  {q:"Quel régime remplace la monarchie ?", a:["La République","L'Empire","La dictature","La royauté"], r:"La République", e:"Proclamée en 1792."},
-  {q:"Qui est Napoléon ?", a:["Un général","Un roi","Un évêque","Un écrivain"], r:"Un général", e:"Il profite de la Révolution."},
-  {q:"Quel calendrier est créé ?", a:["Calendrier républicain","Calendrier grégorien","Calendrier romain","Calendrier lunaire"], r:"Calendrier républicain", e:"Créé pour rompre avec l'Église."},
-  {q:"Que réclame le peuple ?", a:["Plus d'égalité","Plus d'impôts","Plus de rois","Plus de guerres"], r:"Plus d'égalité", e:"Fin des privilèges."},
-  {q:"Que sont les privilèges ?", a:["Avantages réservés","Lois","Impôts","Armes"], r:"Avantages réservés", e:"Pour la noblesse et le clergé."},
-  {q:"Quel slogan est célèbre ?", a:["Liberté Égalité Fraternité","Vive le roi","Paix et guerre","Force et loi"], r:"Liberté Égalité Fraternité", e:"Devise de la République."},
-  {q:"Où se réunit le Tiers État ?", a:["Jeu de Paume","Versailles","Bastille","Louvre"], r:"Jeu de Paume", e:"Serment du Jeu de Paume."},
-  {q:"Quel impôt est injuste ?", a:["La taille","La TVA","L'impôt sur le revenu","La dîme moderne"], r:"La taille", e:"Payée surtout par le peuple."},
-  {q:"Que devient la France après ?", a:["République","Empire","Monarchie","Dictature"], r:"République", e:"La première République est proclamée en 1792."},
-  {q:"Qui crée la guillotine ?", a:["Dr. Guillotin","Robespierre","Napoléon","Louis XVI"], r:"Dr. Guillotin", e:"Pour rendre les exécutions plus humaines."},
-  {q:"Comment s'appelle le procès du roi ?", a:["Procès de Louis XVI","Procès de Versailles","Procès de Paris","Procès du peuple"], r:"Procès de Louis XVI", e:"Il est jugé pour trahison."},
-  {q:"Que font les sans-culottes ?", a:["Manifestations et révoltes","Gouvernent la France","Écrivent des lois","Se battent pour le roi"], r:"Manifestations et révoltes", e:"Ils participent aux journées révolutionnaires."},
-  {q:"Qui était Danton ?", a:["Révolutionnaire","Roi","Général","Évêque"], r:"Révolutionnaire", e:"Il participe à la chute de la monarchie."},
-  {q:"Qui était Marat ?", a:["Journaliste révolutionnaire","Roi","Soldat","Évêque"], r:"Journaliste révolutionnaire", e:"Il écrit pour soutenir les sans-culottes."},
-  {q:"Qui était Robespierre ?", a:["Chef révolutionnaire","Roi","Évêque","Écrivain"], r:"Chef révolutionnaire", e:"Dirige le Comité de salut public."},
-  {q:"Quelle fête nationale apparaît ?", a:["14 juillet","1er janvier","25 décembre","14 août"], r:"14 juillet", e:"En souvenir de la prise de la Bastille."},
-  {q:"Quel symbole royal disparaît ?", a:["La fleur de lys","La guillotine","Le drapeau tricolore","Le bonnet"], r:"La fleur de lys", e:"Symbole de la monarchie."},
-  {q:"Qui est exécuté avec le roi ?", a:["Marie-Antoinette","Danton","Robespierre","Napoléon"], r:"Marie-Antoinette", e:"Elle est guillotinée en 1793."},
-  {q:"Quelle guerre éclate après ?", a:["Guerres révolutionnaires","Guerre de 100 ans","Guerre de 7 ans","Guerre civile"], r:"Guerres révolutionnaires", e:"La France se défend contre les monarchies européennes."},
-  {q:"Qui vote pour la République ?", a:["La Convention","Le peuple seul","Le roi","Les nobles"], r:"La Convention", e:"En septembre 1792."},
-  {q:"Qui est exécuté pendant la Terreur ?", a:["Beaucoup de nobles","Le peuple","Le roi","Napoléon"], r:"Beaucoup de nobles", e:"Pour protéger la Révolution."},
-  {q:"Qui dirige après la Terreur ?", a:["Le Directoire","Robespierre","Le roi","Napoléon"], r:"Le Directoire", e:"De 1795 à 1799."},
-  {q:"Qui met fin à la Révolution ?", a:["Napoléon","Robespierre","Louis XVI","Danton"], r:"Napoléon", e:"Coup d'État du 18 Brumaire 1799."},
-  {q:"Quel document est la Constitution ?", a:["Constitution de 1791","Déclaration des droits","Code civil","Edit royal"], r:"Constitution de 1791", e:"Limite le pouvoir du roi."},
-  {q:"Quel roi tente de fuir ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Fuite à Varennes en 1791."},
-  {q:"Que signifie “Tiers-État” ?", a:["Peuple","Noblesse","Clergé","Roi"], r:"Peuple", e:"Les habitants qui ne font pas partie du clergé ou de la noblesse."},
-  {q:"Quel est le mot d’ordre des révolutionnaires ?", a:["Liberté","Vive le roi","Paix","Force"], r:"Liberté", e:"La liberté est au centre de la Révolution."},
-  {q:"Qui crée le calendrier républicain ?", a:["Révolutionnaires","Roi","Napoléon","Clergé"], r:"Révolutionnaires", e:"Pour rompre avec les symboles religieux."},
-  {q:"Qui est le chef des girondins ?", a:["Brissot","Robespierre","Danton","Napoléon"], r:"Brissot", e:"Ils sont modérés par rapport aux Montagnards."},
-  {q:"Qui étaient les Montagnards ?", a:["Radicaux révolutionnaires","Nobles","Clergé","Roi"], r:"Radicaux révolutionnaires", e:"Ils veulent des mesures très strictes."},
-  {q:"Quel outil est utilisé pour exécuter ?", a:["Guillotine","Épée","Bâton","Canon"], r:"Guillotine", e:"Rapide et égalitaire pour tous."},
-  {q:"Qui vote la mort du roi ?", a:["La Convention","Le peuple","Les nobles","Napoléon"], r:"La Convention", e:"Vote en janvier 1793."},
-  {q:"Qui est Danton ?", a:["Révolutionnaire modéré","Roi","Napoléon","Clergé"], r:"Révolutionnaire modéré", e:"Il s’oppose parfois à Robespierre."},
-  {q:"Que fait Robespierre ?", a:["Terreur et Comité de salut public","Roi","Napoléon","Clergé"], r:"Terreur et Comité de salut public", e:"Il dirige pendant la Terreur."},
-  {q:"Que proclame la Déclaration de 1789 ?", a:["Droits de l’homme","Code civil","Nouvelle loi","Constitution"], r:"Droits de l’homme", e:"Liberté, égalité et fraternité."},
+{q:"En quelle année commence la Révolution française ?", a:["1789","1799","1776","1804"], r:"1789", e:"La Révolution commence en 1789."},
+{q:"Qui était le roi en 1789 ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Louis XVI est le roi au début de la Révolution."},
+{q:"Quel événement a lieu le 14 juillet 1789 ?", a:["Prise de la Bastille","Fête nationale","Exécution du roi","Code civil"], r:"Prise de la Bastille", e:"La prise de la Bastille est un symbole fort."},
+{q:"Comment s'appelle la prison détruite en 1789 ?", a:["La Bastille","Le Louvre","Versailles","La Conciergerie"], r:"La Bastille", e:"La Bastille était une prison royale."},
+{q:"Quelle assemblée représente le peuple ?", a:["États généraux","Sénat","Parlement","Conseil royal"], r:"États généraux", e:"Les États généraux regroupent les trois ordres."},
+{q:"Quel document proclame les libertés ?", a:["Déclaration des droits de l'homme","Code civil","Edit royal","Constitution de 1815"], r:"Déclaration des droits de l'homme", e:"Adoptée en 1789, elle proclame la liberté et l'égalité."},
+{q:"Quel ordre payait le plus d'impôts ?", a:["Le Tiers État","La noblesse","Le clergé","Le roi"], r:"Le Tiers État", e:"Le Tiers État supportait la majorité des impôts."},
+{q:"Comment appelle-t-on les révolutionnaires du peuple ?", a:["Sans-culottes","Nobles","Clercs","Royalistes"], r:"Sans-culottes", e:"Ils représentent le peuple des villes."},
+{q:"Quel roi est exécuté ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Il est guillotiné en janvier 1793."},
+{q:"Quel est le symbole de la République ?", a:["Drapeau tricolore","Fleur de lys","Couronne","Croix"], r:"Drapeau tricolore", e:"Le drapeau bleu, blanc, rouge symbolise la République."},
+{q:"Qui dirige pendant la Terreur ?", a:["Robespierre","Napoléon","Louis XVI","Danton"], r:"Robespierre", e:"Robespierre dirige le Comité de salut public pendant la Terreur."},
+{q:"Comment s'appelle la période violente ?", a:["La Terreur","La Paix","La Monarchie","L'Empire"], r:"La Terreur", e:"La Terreur se caractérise par des exécutions massives."},
+{q:"Quel régime remplace la monarchie ?", a:["La République","L'Empire","La dictature","La royauté"], r:"La République", e:"La République est proclamée en 1792."},
+{q:"Qui est Napoléon ?", a:["Un général","Un roi","Un évêque","Un écrivain"], r:"Un général", e:"Napoléon profite de la Révolution pour prendre le pouvoir."},
+{q:"Quel calendrier est créé ?", a:["Calendrier républicain","Calendrier grégorien","Calendrier romain","Calendrier lunaire"], r:"Calendrier républicain", e:"Créé pour rompre avec l'Église."},
+{q:"Que réclame le peuple ?", a:["Plus d'égalité","Plus d'impôts","Plus de rois","Plus de guerres"], r:"Plus d'égalité", e:"Le peuple réclame l'égalité face aux privilèges."},
+{q:"Que sont les privilèges ?", a:["Avantages réservés","Lois","Impôts","Armes"], r:"Avantages réservés", e:"Réservés aux nobles et au clergé."},
+{q:"Quel slogan est célèbre ?", a:["Liberté Égalité Fraternité","Vive le roi","Paix et guerre","Force et loi"], r:"Liberté Égalité Fraternité", e:"Devise de la République."},
+{q:"Où se réunit le Tiers État ?", a:["Jeu de Paume","Versailles","Bastille","Louvre"], r:"Jeu de Paume", e:"Serment du Jeu de Paume."},
+{q:"Quel impôt est injuste ?", a:["La taille","TVA","Impôt sur le revenu","Dîme"], r:"La taille", e:"Payée presque uniquement par le Tiers État."},
+{q:"Que devient la France après ?", a:["République","Empire","Monarchie","Dictature"], r:"République", e:"Première République proclamée en 1792."},
+{q:"Qui crée la guillotine ?", a:["Dr. Guillotin","Robespierre","Napoléon","Louis XVI"], r:"Dr. Guillotin", e:"Pour rendre les exécutions plus humaines."},
+{q:"Comment s'appelle le procès du roi ?", a:["Procès de Louis XVI","Procès de Versailles","Procès de Paris","Procès du peuple"], r:"Procès de Louis XVI", e:"Jugé pour trahison."},
+{q:"Que font les sans-culottes ?", a:["Manifestations et révoltes","Gouvernent la France","Écrivent des lois","Se battent pour le roi"], r:"Manifestations et révoltes", e:"Participent aux journées révolutionnaires."},
+{q:"Qui était Danton ?", a:["Révolutionnaire","Roi","Général","Évêque"], r:"Révolutionnaire", e:"Leader révolutionnaire influent."},
+{q:"Qui était Marat ?", a:["Journaliste révolutionnaire","Roi","Soldat","Évêque"], r:"Journaliste révolutionnaire", e:"Écrit pour soutenir les sans-culottes."},
+{q:"Qui était Robespierre ?", a:["Chef révolutionnaire","Roi","Évêque","Écrivain"], r:"Chef révolutionnaire", e:"Dirige le Comité de salut public."},
+{q:"Quelle fête nationale apparaît ?", a:["14 juillet","1er janvier","25 décembre","14 août"], r:"14 juillet", e:"En souvenir de la prise de la Bastille."},
+{q:"Quel symbole royal disparaît ?", a:["La fleur de lys","Guillotine","Drapeau tricolore","Bonnet"], r:"La fleur de lys", e:"Symbole de la monarchie abandonné."},
+{q:"Qui est exécuté avec le roi ?", a:["Marie-Antoinette","Danton","Robespierre","Napoléon"], r:"Marie-Antoinette", e:"Guillotinée en 1793."},
+{q:"Quelle guerre éclate après ?", a:["Guerres révolutionnaires","Guerre de 100 ans","Guerre de 7 ans","Guerre civile"], r:"Guerres révolutionnaires", e:"France se défend contre les monarchies européennes."},
+{q:"Qui vote pour la République ?", a:["La Convention","Le peuple seul","Les nobles","Napoléon"], r:"La Convention", e:"Vote en septembre 1792."},
+{q:"Qui est exécuté pendant la Terreur ?", a:["Beaucoup de nobles","Le peuple","Le roi","Napoléon"], r:"Beaucoup de nobles", e:"Pour protéger la Révolution."},
+{q:"Qui dirige après la Terreur ?", a:["Le Directoire","Robespierre","Le roi","Napoléon"], r:"Le Directoire", e:"Gouverne de 1795 à 1799."},
+{q:"Qui met fin à la Révolution ?", a:["Napoléon","Robespierre","Louis XVI","Danton"], r:"Napoléon", e:"Coup d'État du 18 Brumaire 1799."},
+{q:"Quel document est la Constitution ?", a:["Constitution de 1791","Déclaration des droits","Code civil","Edit royal"], r:"Constitution de 1791", e:"Limite le pouvoir du roi."},
+{q:"Quel roi tente de fuir ?", a:["Louis XVI","Louis XIV","Napoléon","Charles X"], r:"Louis XVI", e:"Fuite à Varennes en 1791."},
+{q:"Que signifie “Tiers-État” ?", a:["Peuple","Noblesse","Clergé","Roi"], r:"Peuple", e:"Ceux qui ne font pas partie du clergé ou de la noblesse."},
+{q:"Quel est le mot d’ordre des révolutionnaires ?", a:["Liberté","Vive le roi","Paix","Force"], r:"Liberté", e:"Liberté au centre de la Révolution."},
+{q:"Que devient Versailles ?", a:["Symbole abandonné","Résidence royale","Prison","Église"], r:"Symbole abandonné", e:"Versailles perd sa fonction de centre du pouvoir."},
+{q:"Qui crée le calendrier républicain ?", a:["Révolutionnaires","Roi","Napoléon","Clergé"], r:"Révolutionnaires", e:"Pour rompre avec les symboles religieux."},
+{q:"Quel est le rôle des sans-culottes ?", a:["Milice populaire","Nobles","Roi","Église"], r:"Milice populaire", e:"Contrôlent les rues de Paris."},
+{q:"Qui est le chef des girondins ?", a:["Brissot","Robespierre","Danton","Napoléon"], r:"Brissot", e:"Modéré par rapport aux Montagnards."},
+{q:"Qui étaient les Montagnards ?", a:["Radicaux révolutionnaires","Nobles","Clergé","Roi"], r:"Radicaux révolutionnaires", e:"Veulent mesures strictes."},
+{q:"Quel outil est utilisé pour exécuter ?", a:["Guillotine","Épée","Bâton","Canon"], r:"Guillotine", e:"Exécutions rapides et égales pour tous."},
+{q:"Que fait la Révolution pour l'Église ?", a:["Nationalisation des biens","Protection des biens","Nouvelles taxes","Rien"], r:"Nationalisation des biens", e:"Les biens deviennent biens nationaux."},
+{q:"Qui vote la mort du roi ?", a:["La Convention","Le peuple","Les nobles","Napoléon"], r:"La Convention", e:"Vote en janvier 1793."}
 ];
 
 /* VARIABLES */
-let questionsPartie = [], i=0, score=0, pseudo="";
-const pseudoInput = document.getElementById("pseudo");
-const pseudoDiv = document.getElementById("pseudoDiv");
-const quizDiv = document.getElementById("quizDiv");
-const resultDiv = document.getElementById("resultDiv");
-const questionEl = document.getElementById("question");
-const answersEl = document.getElementById("answers");
-const infoEl = document.getElementById("info");
-const scoreText = document.getElementById("scoreText");
-const scoreboard = document.getElementById("scoreboard");
+let questionsPartie=[], i=0, score=0, pseudo="";
+const pseudoInput=document.getElementById("pseudo");
+const pseudoDiv=document.getElementById("pseudoDiv");
+const quizDiv=document.getElementById("quizDiv");
+const resultDiv=document.getElementById("resultDiv");
+const adminDiv=document.getElementById("adminDiv");
+const questionEl=document.getElementById("question");
+const answersEl=document.getElementById("answers");
+const infoEl=document.getElementById("info");
+const scoreText=document.getElementById("scoreText");
+const scoreboard=document.getElementById("scoreboard");
+const adminScoreboard=document.getElementById("adminScoreboard");
 
 /* SHUFFLE */
 function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
 
 /* START QUIZ */
 function startQuiz(){
-  pseudo = pseudoInput.value.trim() || "Anonyme";
-  pseudoDiv.style.display="none";
-  quizDiv.style.display="block";
-  i=0; score=0;
-  questionsPartie = shuffle([...banqueQuestions]).slice(0,10);
-  showQuestion();
+pseudo=pseudoInput.value.trim()||"Anonyme";
+pseudoDiv.style.display="none";
+quizDiv.style.display="block";
+i=0; score=0;
+questionsPartie=shuffle([...banqueQuestions]).slice(0,10);
+showQuestion();
 }
 
 /* SHOW QUESTION */
 function showQuestion(){
-  if(i>=questionsPartie.length){showResult(); return;}
-  const q = questionsPartie[i];
-  questionEl.innerHTML = `<h2>${i+1}. ${q.q}</h2>`;
-  infoEl.innerHTML = "";
-  answersEl.innerHTML = "";
-  shuffle([...q.a]).forEach(rep=>{
-    const b=document.createElement("button");
-    b.innerText=rep;
-    b.onclick=()=>checkAnswer(rep,q);
-    answersEl.appendChild(b);
-  });
+if(i>=questionsPartie.length){showResult(); return;}
+const q=questionsPartie[i];
+questionEl.innerHTML=`<h2>${i+1}. ${q.q}</h2>`;
+infoEl.innerHTML="";
+answersEl.innerHTML="";
+shuffle([...q.a]).forEach(rep=>{
+const b=document.createElement("button");
+b.innerText=rep;
+b.onclick=()=>checkAnswer(rep,q);
+answersEl.appendChild(b);
+});
 }
 
 /* CHECK ANSWER */
 function checkAnswer(rep,q){
-  [...answersEl.children].forEach(b=>b.disabled=true);
-  const btn=[...answersEl.children].find(b=>b.innerText===rep);
-  if(rep===q.r){btn.classList.add("correct"); score++;}
-  else{btn.classList.add("wrong");}
-  infoEl.innerHTML=q.e;
-  i++;
-  setTimeout(showQuestion,1000);
+[...answersEl.children].forEach(b=>b.disabled=true);
+const btn=[...answersEl.children].find(b=>b.innerText===rep);
+if(rep===q.r){btn.classList.add("correct"); score++;}
+else{btn.classList.add("wrong");}
+infoEl.innerHTML=q.e;
+i++;
+setTimeout(showQuestion,1000);
 }
 
 /* SHOW RESULT */
 function showResult(){
-  quizDiv.style.display="none";
-  resultDiv.style.display="block";
-  scoreText.innerHTML=`${pseudo}, vous avez ${score} / ${questionsPartie.length} bonnes réponses!`;
+quizDiv.style.display="none";
+resultDiv.style.display="block";
+scoreText.innerHTML=`${pseudo}, vous avez ${score} / ${questionsPartie.length} bonnes réponses!`;
+let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
+classement.push({pseudo,score,date:new Date().toLocaleString()});
+classement.sort((a,b)=>b.score-a.score);
+localStorage.setItem("classementQuiz",JSON.stringify(classement));
+displayScoreboard();
+}
 
-  // CLASSEMENT
-  let classement = JSON.parse(localStorage.getItem("classementQuiz"))||[];
-  classement.push({pseudo,score,date:new Date().toLocaleString()});
-  classement.sort((a,b)=>b.score-a.score);
-  localStorage.setItem("classementQuiz",JSON.stringify(classement));
-
-  // AFFICHER TOP 10
-  scoreboard.innerHTML="";
-  classement.slice(0,10).forEach((entry,idx)=>{
-    scoreboard.innerHTML+=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})<br>`;
-  });
+/* DISPLAY SCOREBOARD */
+function displayScoreboard(){
+let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
+scoreboard.innerHTML="";
+classement.slice(0,10).forEach((entry,idx)=>{
+scoreboard.innerHTML+=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})<br>`;
+});
 }
 
 /* RESTART QUIZ */
-function restartQuiz(){
-  resultDiv.style.display="none";
-  pseudoDiv.style.display="block";
+function restartQuiz(){resultDiv.style.display="none"; pseudoDiv.style.display="block";}
+
+/* ADMIN */
+function adminLogin(){
+const id=prompt("Entrez l'identifiant admin :");
+if(id===MASTER_ID){pseudoDiv.style.display="none"; adminDiv.style.display="block"; displayAdminBoard();}
+else alert("Identifiant incorrect !");
 }
+function displayAdminBoard(){
+let classement=JSON.parse(localStorage.getItem("classementQuiz"))||[];
+adminScoreboard.innerHTML="";
+classement.forEach((entry,idx)=>{
+const div=document.createElement("div");
+div.innerHTML=`${idx+1}. ${entry.pseudo} – ${entry.score} pts (${entry.date})`;
+const btn=document.createElement("button");
+btn.innerText="Supprimer";
+btn.className="delBtn";
+btn.onclick=()=>{
+classement.splice(idx,1);
+localStorage.setItem("classementQuiz",JSON.stringify(classement));
+displayAdminBoard();
+};
+div.appendChild(btn);
+adminScoreboard.appendChild(div);
+});
+}
+function closeAdmin(){adminDiv.style.display="none"; pseudoDiv.style.display="block";}
 </script>
 </body>
 </html>
+
